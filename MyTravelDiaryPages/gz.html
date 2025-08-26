@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>广州景点</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: '微软雅黑', Arial, sans-serif;
+            background: url('/imagesxjp/广州背景.png') no-repeat center center fixed;
+            background-size: cover;
+            overflow-x: hidden;
+            overflow-y: hidden;
+        }
+        html {
+            overflow-x: hidden;
+            overflow-y: hidden;
+        }
+        iframe {
+            overflow-x: hidden;
+            overflow-y: hidden;
+            height: 100%;
+        }
+        .spot-menu {
+            position: relative;
+            width: 220px;
+            margin: 0;
+            padding: 0;
+            border-radius: 10px 0 0 10px !important;
+        }
+        .spot-menu ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .spot-menu li {
+            background: #fff;
+            margin-bottom: 12px;
+            padding: 14px 18px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            font-size: 1.1em;
+            color: #333;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .spot-menu li:hover,
+        .spot-menu li.active {
+            background: #ffe082;
+        }
+        .spot-content-area {
+            flex: 1 1 0;
+            background: rgba(255,255,255,0.92);
+            border-radius: 0 16px 16px 0;
+            margin: 0;
+            min-width: 0;
+            position: relative;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+            padding: 32px 24px 24px 24px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .tab-header {
+            position: absolute;
+            top: 0;
+            right: 24px;
+            display: flex;
+            width: calc(100% - 48px);
+            flex-direction: row;
+            margin-bottom: 0;
+            gap: 0;
+        }
+        .tab-underline {
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 100%;
+            height: 2px;
+            background: #e0e0e0;
+            border-radius: 2px;
+            z-index: 1;
+        }
+        .tab-btn {
+            background: #fffbe6;
+            border: 1.5px solid #ffd600;
+            border-radius: 8px 8px 0 0;
+            padding: 8px 24px;
+            font-size: 1em;
+            cursor: pointer;
+            color: #333;
+            font-weight: bold;
+            transition: background 0.2s, color 0.2s;
+        }
+        .tab-btn.active {
+            background: #ffd600;
+            color: #fff;
+        }
+        .tab-content-wrapper {
+            border: 2px dashed #bbb;
+            border-radius: 12px;
+            padding: 24px 18px 18px 18px;
+            margin-top: 16px;
+            background: #fcfcfc;
+            min-height: 120px;
+            box-sizing: border-box;
+            position: relative;
+            max-height: 520px;
+            overflow: hidden;
+        }
+        .tab-content {
+            margin: 0;
+            font-size: 1.1em;
+            min-height: 80px;
+            max-height: 480px;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+        .album-controls { text-align: right; margin-bottom: 10px; }
+        .album-mode-btn { margin-right: 8px; padding: 6px 18px; border-radius: 6px; border: 1.5px solid #ffd600; background: #fffbe6; color: #333; font-weight: bold; cursor: pointer; }
+        .album-mode-btn.active { background: #ffd600; color: #fff; }
+        .album-container { width: 100%; }
+        .photo-grid { display: flex; flex-wrap: wrap; gap: 18px; justify-content: flex-start; }
+        .photo-item { width: 180px; border-radius: 10px; overflow: hidden; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.06); text-align: center; }
+        .photo-item img { width: 100%; height: 120px; object-fit: cover; }
+        .slideshow-container { width: 320px; margin: 0 auto; position: relative; }
+        .slideshow-img { width: 320px; height: 220px; object-fit: cover; border-radius: 10px; }
+        .photo-caption, .slide-caption, .slide-counter { display: none !important; }
+        .slideshow-flex { display: flex; align-items: center; justify-content: center; }
+        .slideshow-arrow { background: #fffbe6; border: 1.5px solid #ffd600; border-radius: 50%; width: 38px; height: 38px; font-size: 10.5px; color: #333; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; margin: 0 12px; }
+        .slideshow-img { width: 320px; height: 220px; object-fit: cover; border-radius: 10px; }
+        .slideshow-mode {
+          background: url('/imgszc/广州背景.gif') center center no-repeat;
+          background-size: cover;
+          position: relative;
+          overflow: hidden;
+        }
+        .slideshow-mode::before {
+          content: "";
+          position: absolute;
+          left: 0; top: 0; right: 0; bottom: 0;
+          background: rgba(255,255,255,0.15);
+          z-index: 1;
+          pointer-events: none;
+        }
+        .slideshow-container, .slideshow-flex, .slideshow-img, .slideshow-arrow {
+          position: relative;
+          z-index: 2;
+        }
+        .collection-mode .photo-item img {
+          width: 300px;
+          height: 210px;
+          object-fit: cover;
+          border-radius: 10px;
+        }
+        .slideshow-mode .slideshow-img {
+          width: 800px;
+          height: 520px;
+          object-fit: cover;
+          border-radius: 10px;
+        }
+        figcaption {
+            font-size: 0.98em;
+            color: #888;
+            font-weight: 400;
+            text-align: center;
+            margin-top: 6px;
+        }
+        #amap-container {
+            width: 100vw;
+            height: 300px;
+            border: 1px solid #ddd;
+            background: #f9f9f9;
+            position: relative;
+            z-index: 1;
+        }
+    </style>
+</head>
+<body>
+    <audio id="bgm" src="/music/szc.mp3" autoplay loop style="display:none"></audio>
+    <script>
+      document.addEventListener('click', function playMusicOnce() {
+        var audio = document.getElementById('bgm');
+        if (audio.paused) audio.play();
+        document.removeEventListener('click', playMusicOnce);
+      });
+    </script>
+    <script src="https://webapi.amap.com/maps?v=2.0&key=e26421ec12176a4eddb8cd2d70df1057"></script>
+    <script>
+      var spots = [
+        {
+          name: '广州塔',
+          position: [113.324, 23.109],
+          address: '广州市海珠区阅江西路222号'
+        },
+        {
+          name: '中山大学',
+          position: [113.297, 23.096],
+          address: '广州市海珠区新港西路135号'
+        },
+        {
+          name: '长隆',
+          position: [113.338, 23.006],
+          address: '广州市番禺区汉溪大道东与长隆地铁大道交汇处'
+        },
+        {
+          name: '烈士陵园',
+          position: [113.259, 23.135],
+          address: '广州市越秀区中山二路92号'
+        },
+        {
+          name: '孙耀威演唱会',
+          position: [113.326, 23.137],
+          address: '广州市白云区白云大道南1039号宝能广州国际体育演艺中心'
+        }
+      ];
+      var centerLng = (113.324 + 113.297 + 113.338 + 113.326) / 4;
+      var centerLat = (23.109 + 23.096 + 23.006 + 23.137) / 4;
+      var centerPosition = [centerLng, centerLat];
+      var map, markers = [];
+      window.onload = function() {
+        try {
+          map = new AMap.Map('amap-container', {
+            center: spots[0].position,
+            zoom: 14,
+            viewMode: '2D'
+          });
+          spots.forEach(function(spot, index) {
+            var circle = new AMap.Circle({
+              center: spot.position,
+              radius: 100,
+              strokeColor: '#0066cc',
+              strokeWeight: 2,
+              strokeOpacity: 1,
+              fillColor: '#0066cc',
+              fillOpacity: 1,
+              zIndex: 10
+            });
+            var infoWindow = new AMap.InfoWindow({
+              content: `<div style="padding:12px;transform:scale(0.9);border-radius:8px;"><h3 style="margin:0 0 6px 0;color:#333;font-size:18px;font-weight:bold;text-align:center;">${spot.name}</h3><p style="margin:0;color:#666;font-size:14px;text-align:center;line-height:1.4;">${spot.address}</p></div>`,
+              offset: new AMap.Pixel(0, -1)
+            });
+            markers.push({
+              position: spot.position,
+              circle: circle,
+              infoWindow: infoWindow,
+              name: spot.name
+            });
+          });
+          handleMenuClick(0);
+          console.log('高德地图初始化成功，已添加景点标记');
+        } catch (error) {
+          console.error('高德地图初始化失败:', error);
+          document.getElementById('amap-container').innerHTML = '<div style="width:100%;height:100%;background:#f0f0f0;display:flex;align-items:center;justify-content:center;color:#666;font-size:16px;">地图加载中...</div>';
+        }
+      };
+      function handleMenuClick(index) {
+        if (map && markers[index]) {
+          map.setCenter(markers[index].position);
+          map.setZoom(14);
+          markers.forEach(function(m) {
+            map.remove(m.circle);
+          });
+          map.add(markers[index].circle);
+          markers[index].infoWindow.open(map, markers[index].position);
+        }
+      }
+    </script>
+    <div id="amap-container" style="width:100vw;height:300px;"></div>
+    <hr style="margin:0; border: none; border-top: 2px solid #ffd600; width: 100vw;">
+    <div style="display:flex;align-items:stretch;height:calc(100vh - 300px);margin:0;padding:0;">
+        <div class="spot-menu" style="width:220px;background:#fff;box-sizing:border-box;margin:0;padding:0;">
+            <div style="font-size:1.3em;font-weight:bold;margin-bottom:18px;color:#333;letter-spacing:2px;
+                background:#fff;border:2px solid #ffd600;border-radius:10px;padding:10px 0;text-align:center;width:100%;box-sizing:border-box; box-shadow:0 2px 8px rgba(0,0,0,0.06);margin:0;">
+                景点打卡
+            </div>
+            <ul style="background:#fff;border:2px solid #ffd600;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,0.06);padding:10px 0 10px 0;margin:0;width:100%;box-sizing:border-box;">
+                <li>广州塔</li>
+                <li>中山大学</li>
+                <li>长隆</li>
+                <li>烈士陵园</li>
+                <li>孙耀威演唱会</li>
+            </ul>
+        </div>
+        <hr style="align-self:stretch;margin:0;padding:0;border:none;border-left:2px solid #ffd600;height:100%;">
+        <div class="spot-content-area">
+          <div class="tab-header">
+            <button class="tab-btn active" data-tab="log">日志</button>
+            <button class="tab-btn" data-tab="album">相册</button>
+            <button class="tab-btn" data-tab="message">留言板</button>
+            <div class="tab-underline"></div>
+          </div>
+          <div class="tab-content-wrapper">
+            <div class="tab-content log-content">这里是日志内容</div>
+            <div class="tab-content album-content" style="display:none;">
+              <div class="album-controls" style="margin-bottom:16px;">
+                <button class="album-mode-btn active" data-mode="collection">集合模式</button>
+                <button class="album-mode-btn" data-mode="slideshow">放映模式</button>
+              </div>
+              <div class="album-container">
+                <div class="collection-mode">
+                  <div class="photo-grid" id="photoGrid"></div>
+                </div>
+                <div class="slideshow-mode" style="display:none;">
+                  <div class="slideshow-container slideshow-flex">
+                    <button class="prev-btn slideshow-arrow">❮</button>
+                    <img class="slideshow-img" src="/images/zjj1.jpg" alt="放映">
+                    <button class="next-btn slideshow-arrow">❯</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="tab-content message-content" style="display:none;">
+              <div style='margin-bottom:12px;display:flex;gap:8px;align-items:center;'>
+                <span>欢迎留言!!!</span><span style='font-size:40px;'>✍</span><span style='font-size:40px;'>✍</span>
+              </div>
+              <input id="nickname-input" type="text" placeholder="昵称（必填）" style="width:120px;padding:4px 8px;border-radius:6px;border:1px solid #ffd600;font-size:1em;" maxlength="12">
+              <br>
+              <br>
+              <textarea id="message-textarea" style="width:100%;height:60px;resize:vertical;border-radius:8px;border:1px solid #ffd600;padding:8px;font-size:1em;box-sizing:border-box;" placeholder="想说些什么呢🤔"></textarea>
+              <br>
+              <span style='font-size:20px; transform: scaleX(-1); display: inline-block;'>💕</span><span style='font-size:20px;'>💓</span>
+              <button id="add-message-btn" style='background:#ffd600;color:#fff;border:none;border-radius:6px;padding:6px 18px;font-size:1em;cursor:pointer;'>添加</button>
+              <span style='font-size:20px;'>💓</span><span style='font-size:20px;'>💕</span>
+              <div id="message-list" style="margin-top:18px;"></div>
+            </div>
+          </div>
+        </div>
+    </div>
+    <div id="imgModal" style="display:none;position:fixed;z-index:9999;left:0;top:0;width:100vw;height:100vh;background:rgba(0,0,0,0.7);align-items:center;justify-content:center;">
+      <img id="modalImg" src="" alt="大图" style="max-width:90vw;max-height:90vh;box-shadow:0 4px 32px #000;border-radius:12px;">
+    </div>
+    <script>
+        var menuLis = document.querySelectorAll('.spot-menu li');
+        var spotLogs = [
+          `<div>
+            <h style="color:blue;">6.10晚，参加完南科大机试（后续是没通过，我承认菜是原罪......），和我爸去参观“小蛮腰”——广州塔。</h>
+            <br>
+            <p>
+              感受一下广州塔600米的统治力!!
+            </p>
+            <img src="imggz/1.jpg" style="display:block; margin:0 auto; width:40%;">
+            <figure style="text-align:center;">
+              <img src="imggz/2.jpg" width="35%;">
+              <img src="imggz/3.jpg" width="60%;">
+              <figcaption>
+                夜景很美，奇特的造型搭配夜幕，有种几何美感？！
+                <br>
+                右图亮点发现没，左边的古塔和右边的广州塔，古典与现代的碰撞。
+              </figcaption>
+            </figure>
+            <figure style="text-align:center;">
+              <img src="imggz/4.jpg" width="40%;">
+              <img src="imggz/5.jpg" width="40%;">
+              <figcaption>
+                我爸给我拍的😊😊
+              </figcaption>
+              <figure style="text-align:center;">
+                <img src="imggz/6.jpg" width="60%;">
+                <figcaption>
+                  准备上塔了，没想到纤细的塔身里面居然大有洞天😲
+                </figcaption>
+              </figure>
+              <video controls style="width:25%; height:auto; display:block; margin:0 auto;">
+                <source src="imggz/1.mp4" type="video/mp4">
+              </video>
+              <p>终于轮到我拍这个转场了 🥳 🥳
+                <figure style="text-align:center;">
+                  <img src="imggz/7.jpg" width="35%;">
+                  <img src="imggz/8.jpg" width="35%;">
+                  <img src="imggz/9.jpg" width="35%;">
+                  <figcaption>
+                    塔内大厅，为了让游客更好地俯瞰地面，特意关闭灯光（倾斜落地玻璃好评😆😆）
+                  </figcaption>
+                </figure>
+                 <figure style="text-align:center;">
+                  <img src="imggz/10.jpg" width="40%;">
+                  <img src="imggz/11.jpg" width="40%;">
+                    外面还有各种游乐项目。
+                  </figcaption>
+                </figure>
+                <hr>
+                <p>当日QQ动态。</p>
+                <img src="imggz/12.jpg" width="30%;">
+          </div>`,
+          `<div>
+            <h style="color:blue;">次日一早，去中大南校区参观（我们广东人的小清华）。感谢中大学姐带我们进校园🎉🎉</h>
+            <p style="text-decoration:underline wavy blue;">
+              中大南校区是最有底蕴的校区，毗邻珠江，校园内建筑多为红墙，绿树成荫，非常清幽。
+            </p>
+            <figure style="text-align:center;">
+              <img src="imggz/13.jpg" width="60%";>
+              <figcaption>
+                经典校门打卡
+                </figcaption>
+              </figure>
+              <figure style="text-align:center;">
+              <img src="imggz/14.jpg" width="60%";>
+              <figcaption>
+                地图一份
+                </figcaption>
+              </figure>
+              <hr>
+              <br>
+              <p style="color:pink;">接下来让我带你们欣赏中大独有的浪漫。</p>
+              <figure style="text-align:center;">
+                <img src="imggz/15.jpg" width="50%";>
+                <img src="imggz/16.jpg" width="50%";>
+                <img src="imggz/17.jpg" width="50%";>
+                <img src="imggz/18.jpg" width="50%";>
+                <img src="imggz/19.jpg" width="50%";>
+                <img src="imggz/20.jpg" width="50%";>
+                <figcaption>远处是国父的雕像</figcaption>
+                <img src="imggz/21.jpg" width="50%";>
+                <img src="imggz/22.jpg" width="50%";>
+                <img src="imggz/23.jpg" width="50%";>
+                <img src="imggz/24.jpg" width="50%";>
+                <img src="imggz/26.jpg" width="50%";>
+                <img src="imggz/28.jpg" width="50%";></img>
+                </figure>
+                <p style="text-decoration: underline dotted green;">
+                  走出校门就是珠江边，太享受了。
+                </p>
+                <figure>
+                  <img src="imggz/25.jpg" width="40%";></img>
+                  <img src="imggz/27.jpg" width="40%";></img>
+                  </figure>
+                  <figure>
+                    <img src="imggz/29.jpg" width="20%";></img>
+                    <figcaption>
+                      当日QQ动态
+                    </figcaption>
+            </div>`,
+          `<div><h3>世界之窗</h3><p>世界之窗是深圳著名的主题公园，汇集了世界各地的著名建筑和文化景观。</p></div>`,
+          `<div><h3>深圳西交同乡会</h3><p>西安交通大学深圳校友会，为在深圳的西交校友提供交流平台。</p></div>`
+        ];
+        var images = [
+          {src:'/images/szc1.jpg'},
+          {src:'/images/szc2.jpg'},
+          {src:'/images/szc3.jpg'},
+          {src:'/images/szc4.jpg'},
+          {src:'/images/szc5.jpg'},
+          {src:'/images/szc6.jpg'},
+          {src:'/images/szc7.jpg'},
+          {src:'/images/szc8.jpg'}
+        ];
+        function updateSpotContent(idx) {
+          document.querySelector('.log-content').innerHTML = spotLogs[idx];
+        }
+        if(menuLis.length) {
+          menuLis.forEach(function(l){l.classList.remove('active');});
+          menuLis[0].classList.add('active');
+          updateSpotContent(0);
+        }
+        menuLis.forEach(function(li,idx){
+          li.onclick = function(){
+            menuLis.forEach(function(l){l.classList.remove('active');});
+            li.classList.add('active');
+            updateSpotContent(idx);
+            handleMenuClick(idx);
+          };
+        });
+        var cityAbbr = 'gz';
+        async function loadMessageList() {
+            try {
+                const response = await fetch(`http://1.95.203.92:9099/comments/${cityAbbr}`);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const list = await response.json();
+                const messageList = document.getElementById('message-list');
+                let html = '';
+                if (list.length === 0) {
+                    html = "<div style='color:#aaa;'>暂无留言</div>";
+                } else {
+                    html = list
+                        .filter(msg => msg.nick && msg.nick !== '匿名')
+                        .map((msg, idx) => {
+                            const date = new Date(msg.date).toLocaleString('zh-CN', {
+                                year: 'numeric',
+                                month: '2-digit',
+                                day: '2-digit',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                            });
+                            return `<div style='margin-bottom:10px;padding:8px 12px;background:#fffbe6;border-radius:6px;border:1px solid #ffe082;word-break:break-all;'>
+                                        <span style='color:#2196f3;font-weight:bold;margin-right:8px;'>${msg.nick}:</span>
+                                        <span style='color:#333;'>${msg.text}</span>
+                                        <span style='float:right;color:#999;font-size:0.95em;'>${date}</span>
+                                    </div>`;
+                        })
+                        .join('');
+                }
+                messageList.innerHTML = html;
+            } catch (err) {
+                console.error('加载评论失败:', err);
+                document.getElementById('message-list').innerHTML = "<div style='color:#aaa;'>加载评论失败，请稍后重试</div>";
+            }
+        }
+        async function addMessage() {
+            const nickname = document.getElementById('nickname-input').value.trim();
+            const text = document.getElementById('message-textarea').value.trim();
+            if (!nickname) {
+                alert('请填写昵称');
+                document.getElementById('nickname-input').focus();
+                return;
+            }
+            if (!text) {
+                alert('请输入留言内容');
+                return;
+            }
+            try {
+                const response = await fetch(`http://1.95.203.92:9099/comments/${cityAbbr}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nick: nickname, text })
+                });
+                if (response.ok) {
+                    document.getElementById('nickname-input').value = '';
+                    document.getElementById('message-textarea').value = '';
+                    loadMessageList();
+                } else {
+                    alert('提交评论失败：' + response.statusText);
+                }
+            } catch (err) {
+                console.error('提交评论失败:', err);
+                alert('提交评论失败，请检查网络连接');
+            }
+        }
+        function loadMessageTab() {
+            loadMessageList();
+            document.getElementById('message-textarea').value = '';
+        }
+        document.addEventListener('DOMContentLoaded', function() {
+            const btn = document.getElementById('add-message-btn');
+            if (btn && !btn.onclick) btn.onclick = addMessage;
+            Array.from(document.querySelectorAll('.tab-btn')).forEach(function(btn){
+                btn.onclick = function(){
+                    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+                    btn.classList.add('active');
+                    if(btn.dataset.tab==='log'){
+                        document.querySelector('.log-content').style.display = '';
+                        document.querySelector('.album-content').style.display = 'none';
+                        document.querySelector('.message-content').style.display = 'none';
+                    }else if(btn.dataset.tab==='album'){
+                        document.querySelector('.log-content').style.display = 'none';
+                        document.querySelector('.album-content').style.display = '';
+                        document.querySelector('.message-content').style.display = 'none';
+                    }else{
+                        document.querySelector('.log-content').style.display = 'none';
+                        document.querySelector('.album-content').style.display = 'none';
+                        document.querySelector('.message-content').style.display = '';
+                        loadMessageTab();
+                    }
+                };
+            });
+            loadMessageList();
+        });
+        function renderCollection() {
+          var html = images.map(function(img){
+            return '<div class="photo-item"><img src="'+img.src+'" alt=""></div>';
+          }).join('');
+          document.getElementById('photoGrid').innerHTML = html;
+        }
+        var modeBtns = document.querySelectorAll('.album-mode-btn');
+        var collection = document.querySelector('.collection-mode');
+        var slideshow = document.querySelector('.slideshow-mode');
+        var slideImg = document.querySelector('.slideshow-img');
+        var prevBtn = document.querySelector('.prev-btn');
+        var nextBtn = document.querySelector('.next-btn');
+        var current = 0;
+        var playing = false;
+        var timer = null;
+        function showSlide(idx){
+          if(idx<0) idx=images.length-1;
+          if(idx>=images.length) idx=0;
+          current=idx;
+          slideImg.src=images[idx].src;
+        }
+        function play(){
+          playing=true;
+          timer=setInterval(function(){
+            showSlide(current+1);
+          },2000);
+        }
+        function pause(){
+          playing=false;
+          if(timer) clearInterval(timer);
+        }
+        modeBtns.forEach(function(btn){
+          btn.onclick=function(){
+            modeBtns.forEach(b=>b.classList.remove('active'));
+            btn.classList.add('active');
+            var albumContent = document.querySelector('.album-content');
+            if(btn.dataset.mode==='collection'){
+              collection.style.display='';
+              slideshow.style.display='none';
+              albumContent.style.overflowY = 'auto';
+              pause();
+            }else{
+              collection.style.display='none';
+              slideshow.style.display='';
+              albumContent.style.overflowY = 'hidden';
+              showSlide(current);
+              play();
+            }
+          };
+        });
+        prevBtn.onclick=function(){showSlide(current-1);};
+        nextBtn.onclick=function(){showSlide(current+1);};
+        renderCollection();
+        showSlide(0);
+        (function(){
+          var modal = document.getElementById('imgModal');
+          var modalImg = document.getElementById('modalImg');
+          document.getElementById('photoGrid').onclick = function(e){
+            if(e.target && e.target.tagName==='IMG'){
+              modalImg.src = e.target.src;
+              modal.style.display = 'flex';
+            }
+          };
+          modal.onclick = function(e){
+            if(e.target === modal) modal.style.display = 'none';
+          };
+        })();
+    </script>
+</body>
+</html>

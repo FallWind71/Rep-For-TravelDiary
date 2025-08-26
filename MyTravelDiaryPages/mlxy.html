@@ -1,0 +1,809 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>马来西亚景点</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: '微软雅黑', Arial, sans-serif;
+            background: url('images/马来西亚背景1.png') no-repeat center center fixed;
+            background-size: cover;
+            overflow-x: hidden;
+            overflow-y: hidden;
+        }
+        html {
+            overflow-x: hidden;
+            overflow-y: hidden;
+        }
+        iframe {
+            overflow-x: hidden;
+            overflow-y: hidden;
+            height: 100%;
+        }
+        .map-section {
+            width: 100vw;
+            height: 166px;
+            position: relative;
+        }
+        .spot-menu {
+            position: relative;
+            width: 220px;
+            margin: 0;
+            padding: 0;
+        }
+        .spot-menu ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .spot-menu li {
+            background: #fff;
+            margin-bottom: 12px;
+            padding: 14px 18px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            font-size: 1.1em;
+            color: #333;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .spot-menu li:hover,
+        .spot-menu li.active {
+            background: #ffe082;
+        }
+        figcaption {
+            font-size: 0.98em;
+            color: #888;
+            font-weight: 400;
+            text-align: center;
+            margin-top: 6px;
+        }
+        /* 全屏背景层样式，z-index为0，内容都在其上方 */
+        #page-bg {
+            position: fixed;
+            left: 0; top: 0; right: 0; bottom: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 0;
+            background: url('images/马来西亚背景1.png') no-repeat center center fixed;
+            background-size: cover;
+            opacity: 0.85; /* 透明度可调 */
+            pointer-events: none; /* 不影响页面交互 */
+        }
+        /* 主内容区和弹窗设置z-index:1，保证在背景层之上 */
+        .map-section,
+        .spot-menu,
+        .spot-content-area,
+        .tab-header,
+        .tab-content-wrapper,
+        #imgModal {
+            position: relative;
+            z-index: 1;
+        }
+        .spot-content-area {
+            flex: 1 1 0;
+            background: rgba(255,255,255,0.92);
+            border-radius: 0 16px 16px 0;
+            margin: 0;
+            min-width: 0;
+            position: relative;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+            padding: 32px 24px 24px 24px;
+            display: flex;
+            flex-direction: column;
+        }
+        .spot-menu {
+            border-radius: 10px 0 0 10px !important;
+        }
+        .tab-header {
+            position: absolute;
+            top: 24px;
+            right: 24px;
+            display: flex;
+            width: calc(100% - 48px);
+            flex-direction: row;
+            margin-bottom: 0;
+            gap: 0;
+        }
+        .tab-underline {
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 100%;
+            height: 2px;
+            background: #e0e0e0;
+            border-radius: 2px;
+            z-index: 1;
+        }
+        .tab-btn {
+            background: #fffbe6;
+            border: 1.5px solid #ffd600;
+            border-radius: 8px 8px 0 0;
+            padding: 8px 24px;
+            font-size: 1em;
+            cursor: pointer;
+            color: #333;
+            font-weight: bold;
+            transition: background 0.2s, color 0.2s;
+        }
+        .tab-btn.active {
+            background: #ffd600;
+            color: #fff;
+        }
+        .tab-content-wrapper {
+            border: 2px dashed #bbb;
+            border-radius: 12px;
+            padding: 24px 18px 18px 18px;
+            margin-top: 60px;
+            background: #fcfcfc;
+            min-height: 120px;
+            box-sizing: border-box;
+            position: relative;
+        }
+        .tab-content {
+            margin: 0;
+            font-size: 1.1em;
+            min-height: 80px;
+            max-height: 600px;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+        .album-controls { text-align: right; margin-bottom: 10px; }
+        .album-mode-btn { margin-right: 8px; padding: 6px 18px; border-radius: 6px; border: 1.5px solid #ffd600; background: #fffbe6; color: #333; font-weight: bold; cursor: pointer; }
+        .album-mode-btn.active { background: #ffd600; color: #fff; }
+        .album-container { width: 100%; }
+        .photo-grid { display: flex; flex-wrap: wrap; gap: 18px; justify-content: flex-start; }
+        .photo-item { width: 180px; border-radius: 10px; overflow: hidden; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.06); text-align: center; }
+        .photo-item img { width: 100%; height: 120px; object-fit: cover; }
+        .slideshow-img { width: 320px; height: 220px; object-fit: cover; border-radius: 10px; }
+        .collection-mode .photo-item img {
+            width: 300px;   /* 集合模式图片宽度，按需修改 */
+            height: 210px;  /* 集合模式图片高度，按需修改 */
+            object-fit: cover;
+            border-radius: 10px;
+        }
+        .slideshow-mode .slideshow-img {
+            width: 800px;   /* 放映模式图片宽度，按需修改 */
+            height: 520px;  /* 放映模式图片高度，按需修改 */
+            object-fit: cover;
+            border-radius: 10px;
+        }
+        .photo-caption { font-size: 0.98em; color: #888; padding: 6px 0; }
+        .slideshow-container { width: 320px; margin: 0 auto; position: relative; }
+        .slideshow-img { width: 100%; height: 220px; object-fit: cover; border-radius: 10px; }
+        .slide-caption { text-align: center; color: #666; margin-top: 8px; }
+        .slideshow-controls { text-align: center; margin-top: 8px; }
+        .slideshow-controls button { margin: 0 8px; padding: 4px 12px; border-radius: 6px; border: 1.5px solid #ffd600; background: #fffbe6; color: #333; font-weight: bold; cursor: pointer; }
+        .slideshow-controls .play-pause-btn { font-size: 1.2em; }
+        .photo-caption, .slide-caption, .slide-counter { display: none !important; }
+        .slideshow-flex { display: flex; align-items: center; justify-content: center; }
+        .slideshow-arrow { background: #fffbe6; border: 1.5px solid #ffd600; border-radius: 50%; width: 38px; height: 38px; font-size: 10.5px; color: #333; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; margin: 0 12px; }
+        .slideshow-controls { margin-top: 8; }
+        .play-pause-btn { margin: 0 8px; padding: 4px 12px; border-radius: 6px; border: 1.5px solid #ffd600; background: #fffbe6; color: #333; font-weight: bold; cursor: pointer; font-size: 1.2em; }
+        .slideshow-mode {
+            background: url('images/背景.gif') center center no-repeat;
+            background-size: cover;
+            position: relative;
+        }
+        .slideshow-mode::before {
+            content: "";
+            position: absolute;
+            left: 0; top: 0; right: 0; bottom: 0;
+            background: rgba(255,255,255,0.15); /* 0.35为遮罩透明度，可调整 */
+            z-index: 1;
+            pointer-events: none;
+        }
+        .slideshow-container, .slideshow-flex, .slideshow-img, .slideshow-arrow {
+            position: relative;
+            z-index: 2;
+        }
+    </style>
+</head>
+<body>
+    <audio id="bgm" src="music/mlxy.mp3" autoplay loop style="display:none"></audio>
+    <script>
+        document.addEventListener('click', function playMusicOnce() {
+            var audio = document.getElementById('bgm');
+            if (audio.paused) audio.play();
+            document.removeEventListener('click', playMusicOnce);
+        });
+    </script>
+    <!-- 全屏背景层，保证背景图片始终覆盖整个页面且带透明度 -->
+    <div id="page-bg"></div>
+    <div class="map-section">
+        <iframe id="custom-content" width="100%" height="200" frameborder="0" style="border:0;overflow:hidden;" scrolling="no" allowfullscreen></iframe>
+    </div>
+    <hr style="margin:0; border: none; border-top: 2px solid #ffd600; width: 100vw;">
+    <div style="display:flex;align-items:stretch;height:calc(100vh - 166px);margin:0;padding:0;">
+        <div class="spot-menu" style="width:220px;background:#fff;box-sizing:border-box;margin:0;padding:0;">
+            <div style="font-size:1.3em;font-weight:bold;margin-bottom:18px;color:#333;letter-spacing:2px;
+                background:#fff;border:2px solid #ffd600;border-radius:10px;padding:10px 0;text-align:center;width:100%;box-sizing:border-box;box-shadow:0 2px 8px rgba(0,0,0,0.06);margin:0;">
+                景点打卡
+            </div>
+            <ul style="background:#fff;border:2px solid #ffd600;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,0.06);padding:10px 0 10px 0;margin:0;width:100%;box-sizing:border-box;">
+                <li>亚罗街</li>
+                <li>国家皇宫</li>
+                <li>双子塔</li>
+                <li>三宝庙</li>
+                <li>荷兰小镇</li>
+            </ul>
+        </div>
+        <hr style="align-self:stretch;margin:0;padding:0;border:none;border-left:2px solid #ffd600;height:100%;">
+        <div class="spot-content-area">
+            <div class="tab-header">
+                <button class="tab-btn active" data-tab="log">日志</button>
+                <button class="tab-btn" data-tab="album">相册</button>
+                <button class="tab-btn" data-tab="message">留言板</button>
+                <div class="tab-underline"></div>
+            </div>
+            <div class="tab-content-wrapper">
+                <div class="tab-content log-content">这里是日志内容</div>
+                <div class="tab-content album-content" style="display:none;">
+                    <div class="album-controls" style="margin-bottom:16px;">
+                        <button class="album-mode-btn active" data-mode="collection">集合模式</button>
+                        <button class="album-mode-btn" data-mode="slideshow">放映模式</button>
+                    </div>
+                    <div class="album-container">
+                        <!-- 集合模式 -->
+                        <div class="collection-mode">
+                            <div class="photo-grid" id="photoGrid"></div>
+                        </div>
+                        <!-- 放映模式 -->
+                        <div class="slideshow-mode" style="display:none;">
+                            <div class="slideshow-container slideshow-flex">
+                                <button class="prev-btn slideshow-arrow">❮</button>
+                                <img class="slideshow-img" src="images/1.jpg" alt="放映">
+                                <button class="next-btn slideshow-arrow">❯</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="tab-content message-content" style="display:none;">
+                    <div style='margin-bottom:12px;display:flex;gap:8px;align-items:center;'>
+                        <span>欢迎留言!!!</span><span style='font-size:40px;'>✍</span><span style='font-size:40px;'>✍</span>
+                    </div>
+                    <input id="nickname-input" type="text" placeholder="昵称（必填）" style="width:120px;padding:4px 8px;border-radius:6px;border:1px solid #ffd600;font-size:1em;" maxlength="12">
+                    <br>
+                    <br>
+                    <textarea id="message-textarea" style="width:100%;height:60px;resize:vertical;border-radius:8px;border:1px solid #ffd600;padding:8px;font-size:1em;box-sizing:border-box;" placeholder="想说些什么呢🤔"></textarea>
+                    <br>
+                    <span style='font-size:20px; transform: scaleX(-1); display: inline-block;'>💕</span><span style='font-size:20px;'>💓</span>
+                    <button id="add-message-btn" style='background:#ffd600;color:#fff;border:none;border-radius:6px;padding:6px 18px;font-size:1em;cursor:pointer;'>添加</button>
+                    <span style='font-size:20px;'>💓</span><span style='font-size:20px;'>💕</span>
+                    <div id="message-list" style="margin-top:18px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- 放大图片弹窗 -->
+    <div id="imgModal" style="display:none;position:fixed;z-index:9999;left:0;top:0;width:100vw;height:100vh;background:rgba(0,0,0,0.7);align-items:center;justify-content:center;">
+        <img id="modalImg" src="" alt="大图" style="max-width:90vw;max-height:90vh;box-shadow:0 4px 32px #000;border-radius:12px;">
+    </div>
+    <script>
+        // 生成iframe内容
+        var spotImgs = [
+            'images/亚罗街.jpg',
+            'images/国家皇宫.jpg',
+            'images/双子塔.jpg',
+            'images/三宝庙.jpg',
+            'images/荷兰小镇.jpg'
+        ];
+        var arrowImg = 'images/箭头.png';
+        var spotNames = ['亚罗街','国家皇宫','双子塔','三宝庙','荷兰小镇'];
+        var spotRowHtml = '<div class="spot-frame"><div class="spot-row">';
+        for(let i=0;i<5;i++){
+            spotRowHtml += `<div class='spot-img-wrap'><img class='spot-img' id='spot${i}' src='${spotImgs[i]}' alt='${spotNames[i]}'><div class='spot-label'>${spotNames[i]}</div></div>`;
+            if(i<4) spotRowHtml += `<img class='arrow-img' src='${arrowImg}' alt='arrow'>`;
+        }
+        spotRowHtml += '</div></div>';
+        var iframeHtml = `
+<!DOCTYPE html>
+<html lang='zh-CN'>
+<head>
+<meta charset='UTF-8'>
+<title>景点展示</title>
+<style>
+html,body{margin:0;padding:0;font-family:'微软雅黑',Arial,sans-serif;background:transparent!important;overflow:hidden;height:100%;}
+.spot-frame {
+  background: #fff;
+  border: 2px solid #ffd600;
+  border-radius: 18px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.10);
+  padding: 32px 32px 24px 32px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: center;
+  max-width: 900px;
+}
+.spot-row{display:flex;align-items:center;justify-content:center;gap:24px;}
+.spot-img-wrap{display:flex;flex-direction:column;align-items:center;}
+.spot-img{width:80px;height:80px;border-radius:16px;box-shadow:0 2px 8px rgba(0,0,0,0.12);transition:transform 0.4s cubic-bezier(.68,-0.55,.27,1.55),box-shadow 0.4s,filter 0.4s;cursor:pointer;background:#fff;}
+.spot-img.active{transform:scale(1.35) rotateY(15deg);box-shadow:0 0 32px 8px #ffe082,0 2px 16px #333;filter:brightness(1.2) drop-shadow(0 0 16px #ffd600);z-index:10;}
+.arrow-img{width:66px;height:40px;object-fit:contain;opacity:0.8;}
+.spot-label{margin-top:8px;font-size:1em;color:#666;text-align:center;}
+</style>
+</head>
+<body>
+${spotRowHtml}
+<script>
+function activateSpot(idx){
+  document.querySelectorAll('.spot-img').forEach((img,i)=>{
+    if(i===idx){img.classList.add('active');}else{img.classList.remove('active');}
+  });
+}
+activateSpot(0);
+window.addEventListener('message',function(e){
+  if(typeof e.data==='number'){activateSpot(e.data);}
+});
+<\/script>
+</body>
+</html>
+`;
+        var iframe = document.getElementById('custom-content');
+        iframe.onload = function(){
+            var doc = iframe.contentDocument || iframe.contentWindow.document;
+            doc.open();
+            doc.write(iframeHtml);
+            doc.close();
+        };
+        // 兼容部分浏览器首次onload不触发
+        if(iframe.contentDocument && iframe.contentDocument.readyState==='complete'){
+            iframe.onload();
+        }
+        // 菜单点击联动iframe
+        var menuLis = document.querySelectorAll('.spot-menu li');
+        // 景点内容示例
+        var spotLogs = [
+            `<div>
+    <p style="text-decoration:underline dotted green">2024.7.29零时......</p>
+    <p>深航的起飞延误，让我有幸感受了吉隆坡的夜生活。</p>
+    <p style="text-decoration:underline double blue; color:green">本以为像马来西亚这种华人聚集较多的亚洲国家，应该随处可见亲切的“黑眼睛黄皮肤”长相的同胞，然而事实上马来西亚人占比最多的是穆斯林群体，在这里可以随处可见裹着头巾的女性，以及长相偏黑的男性，确实让我有着不小的反差感，感觉就像来到了南亚或中东。</p>
+    <figure>
+      <img src="images/1.jpg" width="40%" height="auto" >
+      <img src="images/3.jpg" width="40%" height="auto" >
+      <figcaption>凌晨繁华的街边一角，灯红酒绿，马来西亚网红街头直播</figcaption>
+    </figure>
+    <figure>
+        <img src="images/2.jpg" width="40%" height="auto" >
+        <figcaption>你可以永远相信雪王！<span style="font-size: 30px;">😆</span></figcaption>
+    </figure>
+    <p>那我问你，一杯柠檬水要多少马币（开玩笑的哈哈哈，其实马来西亚货币叫做“林吉特”。）</p>
+    <figure>
+        <img src="images/4.jpg" width="40%" height="auto" >
+        <figcaption>偶遇交警小哥查违章，总感觉马来西亚的黑底白字车牌怪怪的，虽然香港、澳门那边也是。;</span></figcaption>
+    </figure>
+    <figure>
+        <img src="images/5.jpg" width="40%" height="auto" >
+        <figcaption>下车前，找导游用一百人民币换了六十马币，只能说中国人出国玩在物价上就已经吃大亏了<span style='font-size:30px;'>😖</span></figcaption>
+    </figure>
+    <figure> 
+      <img src="images/6.jpg" width="33%" height="auto" >
+      <img src="images/7.jpg" width="33%" height="auto" >
+      <img src="images/8.jpg" width="33%" height="auto" ></img>
+      <figcaption>太激动了，一连发了三条QQ动态🎊 🎊 🎊 </figcaption>
+    </figure>
+    <p style="color: red;">后续：</p>
+    <hr>
+    <p style="color: purple;">后面就是在亚罗街吃吃玩玩了，给我最大的感触就是“天下网红街都一般”，而且这条街居然全是中文招牌，里面大部分店铺老板都会说普通话和粤语，感觉就是专门开给中国人一样，而且这里支持用支付宝。</p>
+    <p style="color: blue;">小吃街的烧烤、饮料等等与国内的面值差不多，但这里的货币是马币啊！！<span style='font-size:20px;'>😣</span></p>
+    <p style="color: green;">最值得一试的就是猫山王榴莲，我们一行三人花了一百多马币买了一个来品尝。猫山王榴莲的特点是体型小肉少，但榴莲味非常浓郁醇厚，这就相当于把国内一个大榴莲浓缩成精华，这便是猫山王榴莲,由东南亚湿热气候所赋予的灵魂水果。<span style="font-size:20px;">😋</span><span style="font-size:20px;">😋</span></p>
+    <figure style="text-align:center;">
+      <img src="images/46.jpg" width=30% height=auto>
+      <figcaption>cxz的随笔 ①</figcaption>
+    </figure>
+  </div>`,
+  `<div>
+    <p style="text-decoration:underline dotted green">第二天一早，前往马来西亚国家皇宫<span style="font-size: 20px;">🥱</span></p>
+    <figure>
+      <img src="images/9.jpg" width=45% height=auto>
+      <img src="images/13.jpg" width=20% height=auto></img>
+      <figcaption>早上八点，路上已经是车水马龙</figcaption>
+    </figure>
+    <figure>
+      <img src="images/10.jpg" width=40% height=auto></img> 
+      <img src="images/11.jpg" width=40% height=auto></img>
+      <figcaption>虽然进不去，但只看大门就叹为观止😲</figcaption>
+    </figure>
+    <figure>
+      <img src="images/12.jpg" width=50% height=auto></img>
+      <img src="images/14.jpg" width=20% height=auto></img>
+      <figcaption>来张父子照🤪🤪🤪</figcaption>
+    </figure>
+  </div>`,
+  `<div>
+    <p style="text-decoration:underline dotted green">前往双子塔的路上......</p>
+    <figure> 
+      <img src="images/15.jpg" width=50% height=auto></img>
+      <figcaption>途径默迪卡18大楼（总高678米，世界第二高建筑）🥵（好高...）</figcaption>
+    </figure>
+    <p style="text-decoration:underline wavy purple">驻足于马来西亚独立广场，惊觉每个国家都有自己的抗争独立史。</p>
+    <figure> 
+      <img src="images/16.jpg" width=40% height=auto></img>
+      <img src="images/17.jpg" width=40% height=auto></img>
+      <figcaption>蓝天、白云、大草坪😎</figcaption>
+    </figure>
+    <p>终于来到双子塔下了，童年时百科全书上的图片照进了现实：好高😓！手机塞不下了。</p>
+    <figure>
+      <img src="images/20.jpg" width=40% height=auto></img>
+      <img src="images/37.jpg" width=40% height=auto></img>
+      <figcaption>双子塔内部其实就是办公楼，只有工作人员才能进去。</figcaption>
+    </figure>
+    <figure>
+      <img src="images/18.jpg" width=33% height=auto></img>
+      <img src="images/19.jpg" width=33% height=auto></img>
+      <figcaption>😆大合照纪念😆</figcaption>
+    </figure>
+    <figure style="text-align:center;">
+      <img src="images/21.jpg" width=35% height=auto></img>
+      <figcaption>孝子孝子，不要忘记父爱如山🥹</figcaption>
+    </figure>
+    <hr>
+    <img src="images/狗头.jpg" 
+     style="width:200px;
+            height:200px;
+            object-fit:cover;
+            object-position:center;
+            border-radius:50%;">
+    <p>🌹🌹🌹嘿嘿🌹🌹🌹</p>
+    <figure style="text-align:center;">
+      <img src="images/47.jpg" width=30% height=auto>
+    </figure>
+    <figure style="text-align:center;">
+      <img src="images/48.jpg" width=30% height=auto></img>
+      <figcaption>cxz的随笔 ②</figcaption>
+    </figure>
+  </div>`,
+  `<div>
+    <p style="text-decoration:underline dotted green">次日去参观中马友谊的象征——三宝庙。</p>
+    <p style="text-decoration:underline wavy red">宝山亭，又名三宝庙，此庙供奉福德正神与三保太监郑和。位于三保山脚下，颇受旅客欢迎。</p>
+    <figure> 
+      <img src="images/23.jpg" width=30% height=auto>
+      <img src="images/24.jpg" width=30% height=auto>
+      <img src="images/27.jpg" width=30% height=auto>
+      <figcaption>导游和孝子庙中同框。</figcaption>
+    </figure>
+    <p>在异国他乡看到了先辈们浴血奋战的遗址，甚是感动，向全世界反法西斯、爱好和平的人们致敬🫡</p>
+    <figure>
+      <img src="images/22.jpg" width=40% height=auto></img>
+      <img src="images/25.jpg" width=40% height=auto></img>
+      <figcaption>马六甲华人抗日义士纪念碑矗立在三保山东侧的山坡上，碑上刻有蒋介石署名题写的“忠贞足式”四个大字。这是纪念在第二次世界大战中，为支援祖国与马来亚抗日斗争而殉难的华侨烈士而建造的纪念碑。1941年12月8日，大日本帝国占领马来亚，并在马六甲当地杀害了一千多当地华侨同胞。抗日战争胜利后，马六甲当地的华人社团，收集了700余具烈士遗骨，集体安葬在此，并于1947年建造纪念碑，请来了当时中华民国政府的领导人蒋介石题了“忠贞足式”四字。纪念碑于1948年4月5日清明节当天举行了隆重的揭幕仪式，其中马来亚联合邦驻马六甲的钦差、军政首长和华社领导人、烈士家属等皆受邀参加揭幕仪式。纪念碑上“忠贞足式”四字中，“忠贞”的意思为清楚的；忠者，忠心也；贞者，坚贞之士也。葬在这里的烈士,都是抗日卫国、坚贞不屈的龙的传人；而“足式”的意思，在《辞海》内书为“足”字有“足够”、“值得”等解释。“式”字解释为“模式”和“榜样”。总体而言“忠贞足式”的意思为“在日本帝国主义统治下殉难的这些烈士，他们忠于祖国、抗日卫国不惜牺牲生命！”</figcaption>
+    </figure>
+    <figure style="text-align:center;">
+      <img src="images/26.jpg" width=30% height=auto></img>
+      <figcaption>当时的QQ动态</figcaption>
+    </figure>
+  </div>`,
+  `<div>
+    <p style="text-decoration:underline dotted green">在马来西亚的最后一站——荷兰小镇。</p>
+    <p>荷兰小镇位于马六甲市中心，马六甲市在马六甲海峡尽头处，下一站新山市隔着柔佛海峡与新加坡相望......没错，明天就要去新加坡了🥳（期待ing）</p>
+    <figure>
+      <img src="images/36.jpg" width=90% height=auto></img>
+      <figcaption>小镇中心全景：居然全是红房子</figcaption>
+    </figure>
+    <p>烈日当头，教堂中不时传出清脆的琴声，响彻在小镇上空。</p>
+    <figure>
+      <img src="images/29.jpg" width=30% height=auto></img>
+      <img src="images/30.jpg" width=30% height=auto></img>
+      <img src="images/31.jpg" width=30% height=auto></img>
+      <img src="images/32.jpg" width=30% height=auto></img>
+      <img src="images/33.jpg" width=30% height=auto></img>
+      <img src="images/34.jpg" width=30% height=auto></img>
+      <figcaption>街角一景</figcaption>
+    </figure>
+    <p>最后来两张自拍</p>
+    <figure>
+      <img src="images/28.jpg" width=40% height=auto></img>
+      <img src="images/35.jpg" width=40% height=auto></img>
+    </figure>
+    <hr>
+    <p>晚上的马六甲市中心，用高德地图导航去吃夜宵的路上，外国的街头小摊也别有特色。</p>
+    <figure>
+      <img src="images/40.jpg" width=40% height=auto></img>
+      <img src="images/41.jpg" width=40% height=auto></img>
+      <img src="images/42.jpg" width=25% height=auto></img>
+      <img src="images/43.jpg" width=44% height=auto></img>
+    </figure>
+    <figure>
+      <img 
+        src="images/44.jpg" 
+        style="
+            transform: rotate(270deg);
+            transform-origin: center;
+            display: block;
+            margin: 20px auto;
+            width: 40%;
+        "
+    >
+    <figcaption>
+      看不懂——其实马来语的书面文字还是以英文为载体的。
+    </figcaption>
+    </figure>
+    <figure>
+  <img src="images/45.jpg" style="width:40%; height:auto; display:block; margin: 0 auto;">
+      <figcaption> 👍 👍 👍海底捞开遍全球了</figcaption>
+    </figure>
+<figure style="text-align: center;">
+  <img src="images/38.jpg" style="width:20%; height:auto; display:inline-block; vertical-align:middle;">
+  <img src="images/39.jpg" style="width:20%; height:auto; display:inline-block; vertical-align:middle;">
+  <figcaption>💗💗当天QQ动态💗💗</figcaption>
+</figure>
+<figure style="text-align:center;">
+      <img src="images/49.jpg" width=30% height=auto>
+</figure>
+<figure style="text-align:center;">
+      <img src="images/50.jpg" width=30% height=auto>
+      <figcaption>cxz的随笔 ③</figcaption>
+    </figure>
+  </div>`
+        ];
+        var spotAlbums = [
+            '亚罗街的相册内容……',
+            '国家皇宫的相册内容……',
+            '双子塔的相册内容……',
+            '三宝庙的相册内容……',
+            '荷兰小镇的相册内容……'
+        ];
+        function updateSpotContent(idx) {
+            document.querySelector('.log-content').innerHTML = spotLogs[idx];
+            // 相册和留言板内容全城市共用，这里无需处理
+        }
+        // 默认高亮第一个菜单项并联动iframe和内容
+        if(menuLis.length) {
+            menuLis.forEach(function(l){l.classList.remove('active');});
+            menuLis[0].classList.add('active');
+            document.getElementById('custom-content').contentWindow.postMessage(0,'*');
+            updateSpotContent(0);
+        }
+        // 菜单点击时只切换日志内容
+        menuLis.forEach(function(li,idx){
+            li.onclick = function(){
+                document.getElementById('custom-content').contentWindow.postMessage(idx,'*');
+                menuLis.forEach(function(l){l.classList.remove('active');});
+                li.classList.add('active');
+                updateSpotContent(idx);
+            };
+        });
+        // 当前城市缩写
+        var cityAbbr = 'mlxy';
+        // 加载留言列表
+        async function loadMessageList() {
+            try {
+                const response = await fetch(`http://1.95.203.92:9099/comments/${cityAbbr}`);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const list = await response.json();
+                const messageList = document.getElementById('message-list');
+                let html = '';
+                if (list.length === 0) {
+                    html = "<div style='color:#aaa;'>暂无留言</div>";
+                } else {
+                    html = list
+                        .filter(msg => msg.nick && msg.nick !== '匿名')
+                        .map((msg, idx) => {
+                            const date = new Date(msg.date).toLocaleString('zh-CN', {
+                                year: 'numeric',
+                                month: '2-digit',
+                                day: '2-digit',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                            });
+                            return `<div style='margin-bottom:10px;padding:8px 12px;background:#fffbe6;border-radius:6px;border:1px solid #ffe082;word-break:break-all;'>
+                                        <span style='color:#2196f3;font-weight:bold;margin-right:8px;'>${msg.nick}:</span>
+                                        <span style='color:#333;'>${msg.text}</span>
+                                        <span style='float:right;color:#999;font-size:0.95em;'>${date}</span>
+                                    </div>`;
+                        })
+                        .join('');
+                }
+                messageList.innerHTML = html;
+            } catch (err) {
+                console.error('加载评论失败:', err);
+                document.getElementById('message-list').innerHTML = "<div style='color:#aaa;'>加载评论失败，请稍后重试</div>";
+            }
+        }
+        // 添加留言
+        async function addMessage() {
+            const nickname = document.getElementById('nickname-input').value.trim();
+            const text = document.getElementById('message-textarea').value.trim();
+            if (!nickname) {
+                alert('请填写昵称');
+                document.getElementById('nickname-input').focus();
+                return;
+            }
+            if (!text) {
+                alert('请输入留言内容');
+                return;
+            }
+            try {
+                const response = await fetch(`http://1.95.203.92:9099/comments/${cityAbbr}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nick: nickname, text })
+                });
+                if (response.ok) {
+                    document.getElementById('nickname-input').value = '';
+                    document.getElementById('message-textarea').value = '';
+                    loadMessageList();
+                } else {
+                    alert('提交评论失败：' + response.statusText);
+                }
+            } catch (err) {
+                console.error('提交评论失败:', err);
+                alert('提交评论失败，请检查网络连接');
+            }
+        }
+        // 切换到留言板时加载留言列表
+        function loadMessageTab() {
+            loadMessageList();
+            document.getElementById('message-textarea').value = '';
+        }
+        // 选项卡切换
+        document.addEventListener('DOMContentLoaded', function() {
+            const btn = document.getElementById('add-message-btn');
+            if (btn && !btn.onclick) btn.onclick = addMessage;
+            Array.from(document.querySelectorAll('.tab-btn')).forEach(function(btn){
+                btn.onclick = function(){
+                    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+                    btn.classList.add('active');
+                    if(btn.dataset.tab==='log'){
+                        document.querySelector('.log-content').style.display = '';
+                        document.querySelector('.album-content').style.display = 'none';
+                        document.querySelector('.message-content').style.display = 'none';
+                    }else if(btn.dataset.tab==='album'){
+                        document.querySelector('.log-content').style.display = 'none';
+                        document.querySelector('.album-content').style.display = '';
+                        document.querySelector('.message-content').style.display = 'none';
+                    }else{
+                        document.querySelector('.log-content').style.display = 'none';
+                        document.querySelector('.album-content').style.display = 'none';
+                        document.querySelector('.message-content').style.display = '';
+                        loadMessageTab();
+                    }
+                };
+            });
+            // 页面初始加载留言列表
+            loadMessageList();
+        });
+        // 相册切换与放映功能
+        (function(){
+            var images = [
+                {src:'images/1.jpg'},
+                {src:'images/2.jpg'},
+                {src:'images/3.jpg'},
+                {src:'images/4.jpg'},
+                {src:'images/5.jpg'},
+                {src:'images/6.jpg'},
+                {src:'images/7.jpg'},
+                {src:'images/8.jpg'},
+                {src:'images/国家皇宫.jpg'},
+                {src:'images/三宝庙.jpg'},
+                {src:'images/双子塔.jpg'},
+                {src:'images/亚罗街.jpg'},
+                {src:'images/荷兰小镇.jpg'},
+                {src:'images/9.jpg'},
+                {src:'images/10.jpg'},
+                {src:'images/11.jpg'},
+                {src:'images/12.jpg'},
+                {src:'images/14.jpg'},
+                {src:'images/15.jpg'},
+                {src:'images/16.jpg'},
+                {src:'images/17.jpg'},
+                {src:'images/18.jpg'},
+                {src:'images/19.jpg'},
+                {src:'images/20.jpg'},
+                {src:'images/21.jpg'},
+                {src:'images/22.jpg'},
+                {src:'images/23.jpg'},
+                {src:'images/24.jpg'},
+                {src:'images/25.jpg'},
+                {src:'images/26.jpg'},
+                {src:'images/27.jpg'},
+                {src:'images/28.jpg'},
+                {src:'images/29.jpg'},
+                {src:'images/30.jpg'},
+                {src:'images/31.jpg'},
+                {src:'images/32.jpg'},
+                {src:'images/33.jpg'},
+                {src:'images/34.jpg'},
+                {src:'images/35.jpg'},
+                {src:'images/36.jpg'},
+                {src:'images/37.jpg'},
+                {src:'images/38.jpg'},
+                {src:'images/39.jpg'},
+                {src:'images/40.jpg'},
+                {src:'images/41.jpg'},
+                {src:'images/42.jpg'},
+                {src:'images/43.jpg'},
+                {src:'images/44.jpg'},
+                {src:'images/45.jpg'},
+                {src:'images/46.jpg'},
+                {src:'images/47.jpg'},
+                {src:'images/48.jpg'},
+                {src:'images/49.jpg'},
+                {src:'images/50.jpg'},
+                {src:'images/51.jpg'},
+                {src:'images/52.jpg'},
+                {src:'images/53.jpg'},
+                {src:'images/54.jpg'},
+                {src:'images/55.jpg'},
+                {src:'images/56.jpg'},
+                {src:'images/57.jpg'},
+                {src:'images/58.jpg'},
+                {src:'images/59.jpg'},
+                {src:'images/60.jpg'},
+                {src:'images/61.jpg'}
+            ];
+            var modeBtns = document.querySelectorAll('.album-mode-btn');
+            var collection = document.querySelector('.collection-mode');
+            var slideshow = document.querySelector('.slideshow-mode');
+            var slideImg = document.querySelector('.slideshow-img');
+            var prevBtn = document.querySelector('.prev-btn');
+            var nextBtn = document.querySelector('.next-btn');
+            var current = 0;
+            var playing = false;
+            var timer = null;
+            // 动态渲染集合模式图片
+            function renderCollection() {
+                var html = images.map(function(img){
+                    return '<div class="photo-item"><img src="'+img.src+'" alt=""></div>';
+                }).join('');
+                document.getElementById('photoGrid').innerHTML = html;
+            }
+            // 放映模式相关
+            function showSlide(idx){
+                if(idx<0) idx=images.length-1;
+                if(idx>=images.length) idx=0;
+                current=idx;
+                slideImg.src=images[idx].src;
+            }
+            function play(){
+                playing=true;
+                timer=setInterval(function(){
+                    showSlide(current+1);
+                },2000);
+            }
+            function pause(){
+                playing=false;
+                if(timer) clearInterval(timer);
+            }
+            modeBtns.forEach(function(btn){
+                btn.onclick=function(){
+                    modeBtns.forEach(b=>b.classList.remove('active'));
+                    btn.classList.add('active');
+                    if(btn.dataset.mode==='collection'){
+                        collection.style.display='';
+                        slideshow.style.display='none';
+                        pause();
+                    }else{
+                        collection.style.display='none';
+                        slideshow.style.display='';
+                        showSlide(current);
+                        play(); // 默认自动播放
+                    }
+                };
+            });
+            prevBtn.onclick=function(){showSlide(current-1);};
+            nextBtn.onclick=function(){showSlide(current+1);};
+            // 初始化
+            renderCollection();
+            showSlide(0);
+        })();
+        // 放大图片弹窗功能
+        document.addEventListener('DOMContentLoaded', function() {
+            var modal = document.getElementById('imgModal');
+            var modalImg = document.getElementById('modalImg');
+            document.getElementById('photoGrid').onclick = function(e){
+                if(e.target && e.target.tagName==='IMG'){
+                    modalImg.src = e.target.src;
+                    modal.style.display = 'flex';
+                }
+            };
+            modal.onclick = function(e){
+                if(e.target === modal) modal.style.display = 'none';
+            };
+        });
+    </script>
+</body>
+</html>

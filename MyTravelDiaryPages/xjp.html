@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>新加坡景点</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: '微软雅黑', Arial, sans-serif;
+            background: url('imagesxjp/新加坡背景.png') no-repeat center center fixed;
+            background-size: cover;
+            overflow-x: hidden;
+            overflow-y: hidden;
+        }
+        html {
+            overflow-x: hidden;
+            overflow-y: hidden;
+        }
+        iframe {
+            overflow-x: hidden;
+            overflow-y: hidden;
+            height: 100%;
+        }
+        .map-section {
+            width: 100vw;
+            height: 166px;
+            position: relative;
+        }
+        .spot-menu {
+            position: relative;
+            width: 220px;
+            margin: 0;
+            padding: 0;
+            border-radius: 10px 0 0 10px !important;
+        }
+        .spot-menu ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .spot-menu li {
+            background: #fff;
+            margin-bottom: 12px;
+            padding: 14px 18px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            font-size: 1.1em;
+            color: #333;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .spot-menu li:hover,
+        .spot-menu li.active {
+            background: #ffe082;
+        }
+        .spot-content-area {
+            flex: 1 1 0;
+            background: rgba(255,255,255,0.92);
+            border-radius: 0 16px 16px 0;
+            margin: 0;
+            min-width: 0;
+            position: relative;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+            padding: 32px 24px 24px 24px;
+            display: flex;
+            flex-direction: column;
+        }
+        .tab-header {
+            position: absolute;
+            top: 0;
+            right: 24px;
+            display: flex;
+            width: calc(100% - 48px);
+            flex-direction: row;
+            margin-bottom: 0;
+            gap: 0;
+        }
+        .tab-underline {
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 100%;
+            height: 2px;
+            background: #e0e0e0;
+            border-radius: 2px;
+            z-index: 1;
+        }
+        .tab-btn {
+            background: #fffbe6;
+            border: 1.5px solid #ffd600;
+            border-radius: 8px 8px 0 0;
+            padding: 8px 24px;
+            font-size: 1em;
+            cursor: pointer;
+            color: #333;
+            font-weight: bold;
+            transition: background 0.2s, color 0.2s;
+        }
+        .tab-btn.active {
+            background: #ffd600;
+            color: #fff;
+        }
+        .tab-content-wrapper {
+            border: 2px dashed #bbb;
+            border-radius: 12px;
+            padding: 24px 18px 18px 18px;
+            margin-top: 16px;
+            background: #fcfcfc;
+            min-height: 120px;
+            box-sizing: border-box;
+            position: relative;
+        }
+        .tab-content {
+            margin: 0;
+            font-size: 1.1em;
+            min-height: 80px;
+            max-height: 600px;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+        .album-controls { text-align: right; margin-bottom: 10px; }
+        .album-mode-btn { margin-right: 8px; padding: 6px 18px; border-radius: 6px; border: 1.5px solid #ffd600; background: #fffbe6; color: #333; font-weight: bold; cursor: pointer; }
+        .album-mode-btn.active { background: #ffd600; color: #fff; }
+        .album-container { width: 100%; }
+        .photo-grid { display: flex; flex-wrap: wrap; gap: 18px; justify-content: flex-start; }
+        .photo-item { width: 180px; border-radius: 10px; overflow: hidden; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.06); text-align: center; }
+        .photo-item img { width: 100%; height: 120px; object-fit: cover; }
+        .slideshow-container { width: 320px; margin: 0 auto; position: relative; }
+        .slideshow-img { width: 320px; height: 220px; object-fit: cover; border-radius: 10px; }
+        .photo-caption, .slide-caption, .slide-counter { display: none !important; }
+        .slideshow-flex { display: flex; align-items: center; justify-content: center; }
+        .slideshow-arrow { background: #fffbe6; border: 1.5px solid #ffd600; border-radius: 50%; width: 38px; height: 38px; font-size: 10.5px; color: #333; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; margin: 0 12px; }
+        .slideshow-img { width: 320px; height: 220px; object-fit: cover; border-radius: 10px; }
+        .slideshow-mode {
+          background: url('imagesxjp/背景.gif') center center no-repeat;
+          background-size: cover;
+          position: relative;
+        }
+        .slideshow-mode::before {
+          content: "";
+          position: absolute;
+          left: 0; top: 0; right: 0; bottom: 0;
+          background: rgba(255,255,255,0.15);
+          z-index: 1;
+          pointer-events: none;
+        }
+        .slideshow-container, .slideshow-flex, .slideshow-img, .slideshow-arrow {
+          position: relative;
+          z-index: 2;
+        }
+        .collection-mode .photo-item img {
+          width: 300px;
+          height: 210px;
+          object-fit: cover;
+          border-radius: 10px;
+        }
+        .slideshow-mode .slideshow-img {
+          width: 800px;
+          height: 520px;
+          object-fit: cover;
+          border-radius: 10px;
+        }
+        #page-bg {
+            position: fixed;
+            left: 0; top: 0; right: 0; bottom: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 0;
+            background: url('imagesxjp/新加坡背景.png') no-repeat center center fixed;
+            background-size: cover;
+            opacity: 0.85;
+            pointer-events: none;
+        }
+        .map-section,
+        .spot-menu,
+        .spot-content-area,
+        .tab-header,
+        .tab-content-wrapper,
+        #imgModal {
+            position: relative;
+            z-index: 1;
+        }
+        figcaption {
+            font-size: 0.98em;
+            color: #888;
+            font-weight: 400;
+            text-align: center;
+            margin-top: 6px;
+        }
+    </style>
+</head>
+<body>
+    <audio id="bgm" src="/music/xjp.mp3" autoplay loop style="display:none"></audio>
+    <script>
+      document.addEventListener('click', function playMusicOnce() {
+        var audio = document.getElementById('bgm');
+        if (audio.paused) audio.play();
+        document.removeEventListener('click', playMusicOnce);
+      });
+    </script>
+    <div id="page-bg"></div>
+    <div class="map-section">
+        <iframe id="custom-content" width="100%" height="200" frameborder="0" style="border:0;overflow:hidden;" scrolling="no" allowfullscreen></iframe>
+    </div>
+    <hr style="margin:0; border: none; border-top: 2px solid #ffd600; width: 100vw;">
+    <div style="display:flex;align-items:stretch;height:calc(100vh - 166px);margin:0;padding:0;">
+        <div class="spot-menu" style="width:220px;background:#fff;box-sizing:border-box;margin:0;padding:0;">
+            <div style="font-size:1.3em;font-weight:bold;margin-bottom:18px;color:#333;letter-spacing:2px;
+                background:#fff;border:2px solid #ffd600;border-radius:10px;padding:10px 0;text-align:center;width:100%;box-sizing:border-box;box-shadow:0 2px 8px rgba(0,0,0,0.06);margin:0;">
+                景点打卡
+            </div>
+            <ul style="background:#fff;border:2px solid #ffd600;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,0.06);padding:10px 0 10px 0;margin:0;width:100%;box-sizing:border-box;">
+                <li>环球影城</li>
+                <li>花园城市</li>
+                <li>鱼尾狮公园</li>
+                <li>金沙购物广场</li>
+                <li>樟宜国际机场</li>
+            </ul>
+        </div>
+        <hr style="align-self:stretch;margin:0;padding:0;border:none;border-left:2px solid #ffd600;height:100%;">
+        <div class="spot-content-area">
+          <div class="tab-header">
+            <button class="tab-btn active" data-tab="log">日志</button>
+            <button class="tab-btn" data-tab="album">相册</button>
+            <button class="tab-btn" data-tab="message">留言板</button>
+            <div class="tab-underline"></div>
+          </div>
+          <div class="tab-content-wrapper">
+            <div class="tab-content log-content">这里是日志内容</div>
+            <div class="tab-content album-content" style="display:none;">
+              <div class="album-controls" style="margin-bottom:16px;">
+                <button class="album-mode-btn active" data-mode="collection">集合模式</button>
+                <button class="album-mode-btn" data-mode="slideshow">放映模式</button>
+              </div>
+              <div class="album-container">
+                <div class="collection-mode">
+                  <div class="photo-grid" id="photoGrid"></div>
+                </div>
+                <div class="slideshow-mode" style="display:none;">
+                  <div class="slideshow-container slideshow-flex">
+                    <button class="prev-btn slideshow-arrow">❮</button>
+                    <img class="slideshow-img" src="images/zjj1.jpg" alt="放映">
+                    <button class="next-btn slideshow-arrow">❯</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="tab-content message-content" style="display:none;">
+              <div style='margin-bottom:12px;display:flex;gap:8px;align-items:center;'>
+                <span>欢迎留言!!!</span><span style='font-size:40px;'>✍</span><span style='font-size:40px;'>✍</span>
+              </div>
+              <input id="nickname-input" type="text" placeholder="昵称（必填）" style="width:120px;padding:4px 8px;border-radius:6px;border:1px solid #ffd600;font-size:1em;" maxlength="12">
+              <br>
+              <br>
+              <textarea id="message-textarea" style="width:100%;height:60px;resize:vertical;border-radius:8px;border:1px solid #ffd600;padding:8px;font-size:1em;box-sizing:border-box;" placeholder="想说些什么呢🤔"></textarea>
+              <br>
+              <span style='font-size:20px; transform: scaleX(-1); display: inline-block;'>💕</span><span style='font-size:20px;'>💓</span>
+              <button id="add-message-btn" style='background:#ffd600;color:#fff;border:none;border-radius:6px;padding:6px 18px;font-size:1em;cursor:pointer;'>添加</button>
+              <span style='font-size:20px;'>💓</span><span style='font-size:20px;'>💕</span>
+              <div id="message-list" style="margin-top:18px;"></div>
+            </div>
+          </div>
+        </div>
+    </div>
+    <div id="imgModal" style="display:none;position:fixed;z-index:9999;left:0;top:0;width:100vw;height:100vh;background:rgba(0,0,0,0.7);align-items:center;justify-content:center;">
+      <img id="modalImg" src="" alt="大图" style="max-width:90vw;max-height:90vh;box-shadow:0 4px 32px #000;border-radius:12px;">
+    </div>
+    <script>
+        var spotImgs = [
+            'imagesxjp/14.jpg',
+            'imagesxjp/71.jpg',
+            'imagesxjp/83.jpg',
+            'imagesxjp/91.jpg',
+            'imagesxjp/98.jpg'
+        ];
+        var arrowImg = 'images/箭头.png';
+        var spotNames = ['环球影城','花园城市','鱼尾狮公园','金沙购物广场','樟宜国际机场'];
+        var spotRowHtml = '<div class="spot-frame"><div class="spot-row">';
+        for(let i=0;i<5;i++){
+            spotRowHtml += `<div class='spot-img-wrap'><img class='spot-img' id='spot${i}' src='${spotImgs[i]}' alt='${spotNames[i]}'><div class='spot-label'>${spotNames[i]}</div></div>`;
+            if(i<4) spotRowHtml += `<img class='arrow-img' src='${arrowImg}' alt='arrow'>`;
+        }
+        spotRowHtml += '</div></div>';
+        var iframeHtml = `
+<!DOCTYPE html>
+<html lang='zh-CN'>
+<head>
+<meta charset='UTF-8'>
+<title>景点展示</title>
+<style>
+html,body{margin:0;padding:0;font-family:'微软雅黑',Arial,sans-serif;background:transparent!important;overflow:hidden;height:100%;}
+.spot-frame {
+  background: #fff;
+  border: 2px solid #ffd600;
+  border-radius: 18px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.10);
+  padding: 32px 32px 24px 32px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: center;
+  max-width: 900px;
+}
+.spot-row{display:flex;align-items:center;justify-content:center;gap:24px;}
+.spot-img-wrap{display:flex;flex-direction:column;align-items:center;}
+.spot-img{width:80px;height:80px;border-radius:16px;box-shadow:0 2px 8px rgba(0,0,0,0.12);transition:transform 0.4s cubic-bezier(.68,-0.55,.27,1.55),box-shadow 0.4s,filter 0.4s;cursor:pointer;background:#fff;}
+.spot-img.active{transform:scale(1.35) rotateY(15deg);box-shadow:0 0 32px 8px #ffe082,0 2px 16px #333;filter:brightness(1.2) drop-shadow(0 0 16px #ffd600);z-index:10;}
+.arrow-img{width:66px;height:40px;object-fit:contain;opacity:0.8;}
+.spot-label{margin-top:8px;font-size:1em;color:#666;text-align:center;}
+</style>
+</head>
+<body>
+${spotRowHtml}
+<script>
+function activateSpot(idx){
+  document.querySelectorAll('.spot-img').forEach((img,i)=>{
+    if(i===idx){img.classList.add('active');}else{img.classList.remove('active');}
+  });
+}
+activateSpot(0);
+window.addEventListener('message',function(e){
+  if(typeof e.data==='number'){activateSpot(e.data);}
+});
+<\/script>
+</body>
+</html>
+`;
+        var iframe = document.getElementById('custom-content');
+        iframe.onload = function(){
+            var doc = iframe.contentDocument || iframe.contentWindow.document;
+            doc.open();
+            doc.write(iframeHtml);
+            doc.close();
+        };
+        if(iframe.contentDocument && iframe.contentDocument.readyState==='complete'){
+            iframe.onload();
+        }
+        var menuLis = document.querySelectorAll('.spot-menu li');
+        var spotLogs = [
+          `<div>
+           <p style="text-decoration:underline dotted blue">2024.7.31清早，上桥横跨马六甲海峡离开马来西亚，前往花园城市——新加坡。<p>
+            <figure style="text-align: center;">
+                <img src="imagesxjp/9.jpg" width=30% height=auto></img>
+                <figcaption>桥上有感</figcaption>
+            </figure>
+            <p>新加坡的第一站是环球影城。<a href="https://www.rwsentosa.com/zh-cn/play/universal-studios-singapore" target="_blank">环球影城官网入口</a></p>
+            <p style="text-decoration:underline double red">新加坡政府将本就土地资源稀缺的新加坡本土上一个名叫圣淘沙小岛打造成旅游胜地。圣淘沙是集主题乐园、热带度假村、自然公园和文化中心于一体的休闲之所。新加坡环球影城是圣淘沙岛上圣淘沙名胜世界的重点项目之一，也是东南亚首个和唯一的环球影城主题公园。</p>
+            <p>在进入环球影城之前，我们先在圣淘沙上逛了一圈，参观这里的休闲配套设施，有赌场、奢饰品等......</p>
+            <figure>
+              <img src="imagesxjp/1.jpg" width="30%" height="auto">
+              <img src="imagesxjp/2.jpg" width="30%" height="auto">
+              <img src="imagesxjp/3.jpg" width="30%" height="auto">
+            </figure>
+            <figure style="text-align: center;">
+                <img src="imagesxjp/11.jpg" width="30%" height="auto">
+                <img src="imagesxjp/12.jpg" width="30%" height="auto">
+                <img src="imagesxjp/8.jpg" width="30%" height="auto"></img>
+                <figcaption>🤩这里真的可以玩上两三天！！🤩</figcaption>
+            </figure>
+            <figure style="text-align: center;">
+                <img src="imagesxjp/4.jpg" width="15%" height="auto"></img>
+                <img src="imagesxjp/5.jpg" width="25%" height="auto"></img>
+                <img src="imagesxjp/6.jpg" width="15%" height="auto"></img>
+                <img src="imagesxjp/7.jpg" width="15%" height="auto"></img>
+                <figcaption>看看就好......给我打骨折都买不起😕😕</figcaption>
+            </figure>
+            <hr>
+            <p>😋已经迫不及待地准备进去环球影城了😋</p>
+            <img src="imagesxjp/23.jpg" width="30%" height="auto"></img>
+            <figure style="text-align: center;">
+                <img src="imagesxjp/16.jpg" width="15%" height="auto"></img>
+                <img src="imagesxjp/17.jpg" width="25%" height="auto"></img>
+                <img src="imagesxjp/13.jpg" width="15%" height="auto"></img>
+                <img src="imagesxjp/14.jpg" width="20%" height="auto"></img>
+                <img src="imagesxjp/15.jpg" width="20%" height="auto"></img>
+                <figcaption>环球影城经典大门口打卡</figcaption>
+            </figure>
+            <figure style="text-align: center;">
+                <img src="imagesxjp/18.jpg" width="20%" height="auto"></img>
+                <img src="imagesxjp/19.jpg" width="35%" height="auto"></img>
+                <img src="imagesxjp/20.jpg" width="35%" height="auto"></img>
+            </figure>
+            <figure style="text-align: center;">
+                <img src="imagesxjp/21.jpg" width="35%" height="auto"></img>
+                <img src="imagesxjp/22.jpg" width="35%" height="auto"></img>
+                <figcaption>进去了......就像走进了童话小镇，还赶上了小黄人巡演😊</figcaption>
+            </figure>
+            <hr>
+            <figure style="text-align: center;">
+                <img src="imagesxjp/24.jpg" width="25%" height="auto"></img>
+                <img src="imagesxjp/28.jpg" width="25%" height="auto"></img>
+                <img src="imagesxjp/27.jpg" width="18%" height="auto"></img>
+                <img src="imagesxjp/29.jpg" width="25%" height="auto"></img>
+                <img src="imagesxjp/30.jpg" width="25%" height="auto"></img>
+                <img src="imagesxjp/25.jpg" width="15%" height="auto"></img>
+                <img src="imagesxjp/26.jpg" width="15%" height="auto"></img>
+                <img src="imagesxjp/31.jpg" width="12%" height="auto"></img>
+                <figcaption>打卡第一个项目：变形金刚3D对决，排队排到心碎，谁知道排进里面还要排好几圈！你永远不知道环球影城每个项目里面有多大地方给你排队🥺</figcaption>
+            </figure>
+            <hr>
+            <figure class="figure">
+            <img src="imagesxjp/32.jpg" width="25%" height="auto"></img>
+            <img src="imagesxjp/33.jpg" width="25%" height="auto"></img>
+            <img src="imagesxjp/34.jpg" width="25%" height="auto"></img>
+            <img src="imagesxjp/35.jpg" width="18%" height="auto"></img>
+            <figcaption>简简单单的午餐，价格却不简单😣😣这该死的汇率</figcaption>
+            </figure>
+            <hr>
+            <figure style="text-align:center;">
+                <img src="imagesxjp/36.jpg" width="35%" height="auto"></img>
+                <img src="imagesxjp/37.jpg" width="25%" height="auto"></img>
+                <figcaption>😘我最爱的小黄人😘</figcaption>
+            </figure>
+            <hr>
+            <figure style="text-align:center;">
+                <img src="imagesxjp/38.jpg" width="25%" height="auto"></img>
+                <img src="imagesxjp/39.jpg" width="15%" height="auto"></img>
+                <img src="imagesxjp/40.jpg" width="80%" height="auto"></img>
+                <figcaption>每一处都值得纪念🤗</figcaption>
+            </figure>
+            <hr>
+            <figure style="text-align:center;">
+                <img src="imagesxjp/41.jpg" width="30%" height="auto"></img>
+                <img src="imagesxjp/42.jpg" width="30%" height="auto"></img>
+                <img src="imagesxjp/43.jpg" width="10%" height="auto"></img>
+                <figcaption>打卡第二个项目：芝麻街太空追逐，如果我是小孩，并且看过这部动漫，那可能会很好玩🥱</figcaption>
+            </figure>
+            <hr>
+            <figure style="text-align:center;">
+                <img src="imagesxjp/44.jpg" width="25%" height="auto"></img>
+                <img src="imagesxjp/46.jpg" width="25%" height="auto"></img>
+                <img src="imagesxjp/45.jpg" width="15%" height="auto"></img>
+                <figcaption>打卡第三个项目：斯皮尔伯格特效剧场。<br>这个项目特别有意思，它演示了如何通过建造一个缩小版的沙盘，运用特殊的拍摄技巧来制造电影史上那些著名的特效。这里向我们展示了台风时码头的特效景象，水花竟然直接泼上来了😲😲</figcaption>
+            </figure>
+            <hr>
+            <figure>
+                <img src="imagesxjp/47.jpg" width="40%" height="auto"></img>
+                <img src="imagesxjp/49.jpg" width="40%" height="auto"></img>
+                <img src="imagesxjp/50.jpg" width="25%" height="auto"></img>
+                <img src="imagesxjp/51.jpg" width="25%" height="auto"></img>
+                <img src="imagesxjp/52.jpg" width="25%" height="auto"></img>
+                <img src="imagesxjp/48.jpg" width="40%" height="auto"></img>
+                <img src="imagesxjp/53.jpg" width="25%" height="auto"></img>
+                <figcaption>打卡第四个项目：木乃伊复仇记。<br>这个项目是我在环球影城玩过的最硬核的，小车会带你走进一个黑漆漆的隧道，里面装饰着法老和木乃伊，接着在一片黑暗中小车开始急剧地前进后退、上升下降，并且伴随着法老的嚎叫，让人胆战心惊。😨😨😨</figcaption>
+            </figure>
+            <hr>
+            <figure style="text-align: center;">
+              <img src="imagesxjp/54.jpg" width=20%></img>
+              <img src="imagesxjp/55.jpg" width=40%></img>
+              <img src="imagesxjp/56.jpg" width=40%></img>
+              <img src="imagesxjp/57.jpg" width=40%></img>
+              <img src="imagesxjp/58.jpg" width=15%></img>
+              <figcaption>打卡第五个项目：史派克4D电影。最后一个项目，以英文话剧收场，根本听不懂🥵😭</figcaption>
+            </figure>
+            <hr>
+            <p style="color:brown">在环球影城的旅行就告一段落了，😭实在依依不舍😭，争取下次去奥兰多环球影城总部玩😜</p>
+            <figure style="text-align:center">
+              <img src="imagesxjp/70.jpg" width=40%></img>
+              <figcaption>2024.7.31 Universal Studios</figcaption>
+            </figure>
+            <figure style="text-align:center">
+              <img src="imagesxjp/suibi4.jpg" width=40%></img>
+              <figcaption>cxz的随笔④</figcaption>
+            </figure>
+            </div>`,
+          `<div>
+            <p style="text-decoration:underline dotted blue;">从圣淘沙离开，大巴驶入新加坡市内。</p>
+            <figure>
+              <img src="imagesxjp/59.jpg" width="36%" height="auto" ></img>
+              <img src="imagesxjp/60.jpg" width="22%" height="auto" ></img>
+              <img src="imagesxjp/61.jpg" width="36%" height="auto" ></img>
+              <figcaption>新加坡真的把高楼大厦和绿树花园设计得很好👍👍</figcaption>
+            </figure>
+            <hr>
+            <p style="color:blue">新加坡的天气变化无常，时而晴空时而绵绵细雨，就像伦敦一样。个人猜测是因为新加坡植被茂密，蒸腾作用旺盛，正因为这点使新加坡成为了宜居之城、长寿人口最多的国家之一。</p>
+            <p>滨海湾花园，我愿称之为新加坡的中央公园！！</p>
+            <figure>
+              <img src="imagesxjp/62.jpg" width="36%" height="auto" ></img>
+              <img src="imagesxjp/63.jpg" width="25%" height="auto" ></img>
+              <img src="imagesxjp/64.jpg" width="36%" height="auto" ></img>
+              <img src="imagesxjp/65.jpg" width="36%" height="auto" ></img>
+              <img src="imagesxjp/66.jpg" width="36%" height="auto" ></img>
+              <img src="imagesxjp/67.jpg" width="25%" height="auto" ></img>
+              <img src="imagesxjp/71.jpg" width="75%" height="auto" ></img>
+              <img src="imagesxjp/68.jpg" width="20%" height="auto" ></img>
+              <figcaption>在滨海湾花园可以远眺滨海湾金沙酒店，好奇怪的外形。</figcaption>
+            <hr>
+            <p>夜晚，在克拉码头——一个特别有历史底蕴的地方，看夜景，完全被远处的邮轮酒店吸引了。😲</p>
+            <figure>
+              <img src="imagesxjp/72.jpg" width="30%" height="auto" ></img>
+              <img src="imagesxjp/73.jpg" width="60%" height="auto" ></img>
+              <img src="imagesxjp/74.jpg" width="60%" height="auto" ></img>
+              <img src="imagesxjp/75.jpg" width="20%" height="auto" ></img>
+            </figure>
+            <figure style="text-align:center;">
+              <img src="imagesxjp/suibi5.jpg" width="40%" height="auto" ></img>
+              <figcaption>cxz的随笔⑤</figcaption>
+              </figure>
+            </div>`,
+          `<div>
+          <p style="text-decoration:underline dotted blue;">2024.8.1清早，赶往新加坡地标——鱼尾狮公园。</p>
+          <hr>
+          <p style="color:red">然而......</p>
+          <figure style="text-align:center;">
+            <img src="imagesxjp/85.jpg" width="40%" height="auto" ></img>
+            <figcaption>理想中的鱼尾狮🤩</figcaption>
+          </figure>
+          <figure style="text-align:center;">
+            <img src="imagesxjp/82.jpg" width="35%" height="auto" ></img>
+            <img src="imagesxjp/83.jpg" width="35%" height="auto" ></img>
+            <figcaption>现实中的鱼尾狮 😭 </figcaption>
+          </figure>
+          <p>🥺难得一遇的鱼尾狮洗澡给我们撞上了🥺真是太可惜了，呜呜呜</p>
+          <p>所幸远处的景色值得我们纪念</p>
+          <figure>
+            <img src="imagesxjp/76.jpg" width="30%" height="auto" ></img>
+            <img src="imagesxjp/77.jpg" width="30%" height="auto" ></img>
+            <img src="imagesxjp/81.jpg" width="30%" height="auto" ></img>
+          </figure>
+          <hr>
+          <figure>
+            <img src="imagesxjp/78.jpg" width="30%" height="auto" ></img>
+            <img src="imagesxjp/79.jpg" width="30%" height="auto" ></img>
+            <figcaption>经典父子照（狗头）</figcaption>
+          </figure>
+          <hr>
+          <img src="imagesxjp/80.jpg" width="100%" height="auto" ></figure>
+          <p style="color:rgb(255, 182, 193)">也算是不虚此行了😎</p>
+          <img src="imagesxjp/84.jpg" width="30%" height="auto" ></figure>
+            </div>`,
+          `<div>
+            <p style="text-decoration:underline dotted blue;">下一站，金沙购物广场。</p>
+            <figure>
+              <img src="imagesxjp/86.jpg" width="100%" height="auto" ></img>
+              <img src="imagesxjp/88.jpg" width="100%" height="auto" ></img>
+              <figcaption>先放两张室外全景感受一下😏</figcaption>
+            </figure>
+            <hr>
+            <p style="color:red;">金沙购物广场将风景和商业结合得天衣无缝，这点和下一站樟宜机场类似。可以毫不夸张地说，这是新加坡旅游业的一大特色。<p>
+            <figure>
+              <img src="imagesxjp/87.jpg" width="55%" height="auto" ></img>
+              <img src="imagesxjp/89.jpg" width="40%" height="auto" ></img>
+              <img src="imagesxjp/90.jpg" width="40%" height="auto" ></img>
+              <img src="imagesxjp/91.jpg" width="40%" height="auto" ></img>
+              <img src="imagesxjp/92.jpg" width="40%" height="auto" ></img>
+              <figcaption>人造瀑布、喷泉、河流......哪个设计师这么有才，在这里消费就是一种享受。🤭</figcaption>
+            </figure>
+            <img src="imagesxjp/93.jpg" width="20%" height="auto" ></img>
+            <p>走出购物广场，就准备去机场，启程回国了🤗</p>
+            <figure style="text-align: center;">
+              <img src="imagesxjp/suibi6.jpg" width="40%" height="auto" ></img>
+              <figcaption>cxz的随笔⑥</figcaption>
+            </figure>
+            </div>`,
+          `<div>
+            <p style="text-decoration: underline dotted blue;">有幸一睹樟宜机场尊容。</p>
+            <figure style="text-align: center;">
+              <img src="imagesxjp/94.jpg" width="30%" height="auto" ></img>
+              <figcaption>机场外景</figcaption>
+            </figure>
+            <p style="color: red;">终于见到传说中的室内瀑布了！😘pu！</p>
+            <figure style="text-align: center;">
+              <img src="imagesxjp/95.jpg" width="30%" height="auto" ></img>
+              <img src="imagesxjp/97.jpg" width="30%" height="auto" ></img>
+              <img src="imagesxjp/98.jpg" width="30%" height="auto" ></img>
+              <figcaption>多机位拍摄</figcaption>
+            </figure>
+            <figure style="text-align: center;">
+              <img src="imagesxjp/96.jpg" width="30%" height="auto" ></img>
+              <img src="imagesxjp/99.jpg" width="14%" height="auto" ></img>
+              <figcaption>一张自拍不过分吧🥰</figcaption>
+            </figure>
+            <hr>
+            <hr>
+            <p style="text-decoration: pink;">后续：</p>
+            <p style:"color: pink;">来旅游怎么能不带一些纪念品回去呢！机场超市“Fair Price”的小礼品物美价廉：</p>
+            <figure style="text-align: center;">
+              <img src="imagesxjp/101.jpg" width="25%" height="auto" ></img>
+              <img src="imagesxjp/102.jpg" width="25%" height="auto" ></img>
+              <img src="imagesxjp/103.jpg" width="25%" height="auto" ></img>
+              <img src="imagesxjp/104.jpg" width="25%" height="auto" >茶叶，没想到吧</img>
+            </figure>
+            <img src="imagesxjp/100.jpg" width="25%" height="auto" ></img>
+            <figure style="text-align: center;">
+              <img src="imagesxjp/suibi7.jpg" width="25%" height="auto" ></img>
+              <figcaption>cxz的随笔⑦</figcaption>
+            </figure>
+            <hr>
+            <h style="color: red;">后记——新马游心得：</h>
+            <p style="text-decoration: underline dotted green;">
+              这是我第一次出国旅游，也是在没有父母的陪伴下和好友去国外参加旅行团。
+              <br>
+              有一说一，cxz在网上找的这个旅行团还不错，导游人非常热情😏。
+              <br>
+              对于在国内旅游已然非常有经验的我来说，出国旅游仍然是个非常大的挑战......
+              <br>
+              从调查目的地是否免签、办理护照到从淘宝上买国外的流量卡、调查国外充电口和电压与国内是否适配等等准备工作，都相当繁琐。
+              <br>
+              毕竟，人生总要出一次国吧！——去感受异域风情，去看看那些存在儿时的于百科全书上的照片，去汲取那些在国内获取不到的人文常识。
+              <br>
+              从马来西亚的双子塔到新加坡的鱼尾狮，从马来西亚的美食娘惹餐到新加坡的松发肉骨茶......我们一起看了各色各式的风景，小试了五香俱全的美食🤤。
+              <br>
+              当然，怎么能说没有遗憾呢，从无缘一睹鱼尾狮真容到没时间安排去新加坡国立大学参观......
+              <br>
+              “前路漫漫亦灿灿”，有这次旅行，足矣！
+              <br>
+              💕💕最后附上旅行团的协议，有兴趣去新加坡马来西亚旅游的宝子们可以看看：
+            </p>
+            <figure style="text-align:center;">
+              <img src="imagesxjp/0728深圳马新5天出团通知书（人数17+1）_01.png" width="35%" height="auto" >
+              <img src="imagesxjp/0728深圳马新5天出团通知书（人数17+1）_02.png" width="35%" height="auto" >
+              <img src="imagesxjp/0728深圳马新5天出团通知书（人数17+1）_03.png" width="35%" height="auto" >
+              <img src="imagesxjp/0728深圳马新5天出团通知书（人数17+1）_04.png" width="35%" height="auto" >
+              <img src="imagesxjp/0728深圳马新5天出团通知书（人数17+1）_06.png" width="35%" height="auto" >
+              <img src="imagesxjp/0728深圳马新5天出团通知书（人数17+1）_07.png" width="35%" height="auto" >
+              <img src="imagesxjp/0728深圳马新5天出团通知书（人数17+1）_08.png" width="35%" height="auto" >
+              </figure>
+            </div>`
+        ];
+        var images = [
+          {src:'imagesxjp/1.jpg'},
+          {src:'imagesxjp/2.jpg'},
+          {src:'imagesxjp/3.jpg'},
+          {src:'imagesxjp/4.jpg'},
+          {src:'imagesxjp/5.jpg'},
+          {src:'imagesxjp/6.jpg'},
+          {src:'imagesxjp/7.jpg'},
+          {src:'imagesxjp/8.jpg'},
+          {src:'imagesxjp/9.jpg'},
+          {src:'imagesxjp/10.jpg'},
+          {src:'imagesxjp/11.jpg'},
+          {src:'imagesxjp/12.jpg'},
+          {src:'imagesxjp/13.jpg'},
+          {src:'imagesxjp/14.jpg'},
+          {src:'imagesxjp/15.jpg'},
+          {src:'imagesxjp/16.jpg'},
+          {src:'imagesxjp/17.jpg'},
+          {src:'imagesxjp/18.jpg'},
+          {src:'imagesxjp/19.jpg'},
+          {src:'imagesxjp/20.jpg'},
+          {src:'imagesxjp/21.jpg'},
+          {src:'imagesxjp/22.jpg'},
+          {src:'imagesxjp/23.jpg'},
+          {src:'imagesxjp/24.jpg'},
+          {src:'imagesxjp/25.jpg'},
+          {src:'imagesxjp/26.jpg'},
+          {src:'imagesxjp/27.jpg'},
+          {src:'imagesxjp/28.jpg'},
+          {src:'imagesxjp/29.jpg'},
+          {src:'imagesxjp/30.jpg'},
+          {src:'imagesxjp/31.jpg'},
+          {src:'imagesxjp/32.jpg'},
+          {src:'imagesxjp/33.jpg'},
+          {src:'imagesxjp/34.jpg'},
+          {src:'imagesxjp/35.jpg'},
+          {src:'imagesxjp/36.jpg'},
+          {src:'imagesxjp/37.jpg'},
+          {src:'imagesxjp/38.jpg'},
+          {src:'imagesxjp/39.jpg'},
+          {src:'imagesxjp/40.jpg'},
+          {src:'imagesxjp/41.jpg'},
+          {src:'imagesxjp/42.jpg'},
+          {src:'imagesxjp/43.jpg'},
+          {src:'imagesxjp/44.jpg'},
+          {src:'imagesxjp/45.jpg'},
+          {src:'imagesxjp/46.jpg'},
+          {src:'imagesxjp/47.jpg'},
+          {src:'imagesxjp/48.jpg'},
+          {src:'imagesxjp/49.jpg'},
+          {src:'imagesxjp/50.jpg'},
+          {src:'imagesxjp/51.jpg'},
+          {src:'imagesxjp/52.jpg'},
+          {src:'imagesxjp/53.jpg'},
+          {src:'imagesxjp/54.jpg'},
+          {src:'imagesxjp/55.jpg'},
+          {src:'imagesxjp/56.jpg'},
+          {src:'imagesxjp/57.jpg'},
+          {src:'imagesxjp/58.jpg'},
+          {src:'imagesxjp/59.jpg'},
+          {src:'imagesxjp/60.jpg'},
+          {src:'imagesxjp/61.jpg'},
+          {src:'imagesxjp/62.jpg'},
+          {src:'imagesxjp/63.jpg'},
+          {src:'imagesxjp/64.jpg'},
+          {src:'imagesxjp/65.jpg'},
+          {src:'imagesxjp/66.jpg'},
+          {src:'imagesxjp/67.jpg'},
+          {src:'imagesxjp/68.jpg'},
+          {src:'imagesxjp/69.jpg'},
+          {src:'imagesxjp/70.jpg'},
+          {src:'imagesxjp/71.jpg'},
+          {src:'imagesxjp/72.jpg'},
+          {src:'imagesxjp/73.jpg'},
+          {src:'imagesxjp/74.jpg'},
+          {src:'imagesxjp/75.jpg'},
+          {src:'imagesxjp/76.jpg'},
+          {src:'imagesxjp/77.jpg'},
+          {src:'imagesxjp/78.jpg'},
+          {src:'imagesxjp/79.jpg'},
+          {src:'imagesxjp/80.jpg'},
+          {src:'imagesxjp/81.jpg'},
+          {src:'imagesxjp/82.jpg'},
+          {src:'imagesxjp/83.jpg'},
+          {src:'imagesxjp/84.jpg'},
+          {src:'imagesxjp/85.jpg'},
+          {src:'imagesxjp/86.jpg'},
+          {src:'imagesxjp/87.jpg'},
+          {src:'imagesxjp/88.jpg'},
+          {src:'imagesxjp/89.jpg'},
+          {src:'imagesxjp/90.jpg'},
+          {src:'imagesxjp/91.jpg'},
+          {src:'imagesxjp/92.jpg'}
+        ];
+        function updateSpotContent(idx) {
+          document.querySelector('.log-content').innerHTML = spotLogs[idx];
+        }
+        if(menuLis.length) {
+          menuLis.forEach(function(l){l.classList.remove('active');});
+          menuLis[0].classList.add('active');
+          document.getElementById('custom-content').contentWindow.postMessage(0,'*');
+          updateSpotContent(0);
+        }
+        menuLis.forEach(function(li,idx){
+          li.onclick = function(){
+            document.getElementById('custom-content').contentWindow.postMessage(idx,'*');
+            menuLis.forEach(function(l){l.classList.remove('active');});
+            li.classList.add('active');
+            updateSpotContent(idx);
+          };
+        });
+        var cityAbbr = 'xjp';
+        async function loadMessageList() {
+            try {
+                const response = await fetch(`http://1.95.203.92:9099/comments/${cityAbbr}`);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const list = await response.json();
+                const messageList = document.getElementById('message-list');
+                let html = '';
+                if (list.length === 0) {
+                    html = "<div style='color:#aaa;'>暂无留言</div>";
+                } else {
+                    html = list
+                        .filter(msg => msg.nick && msg.nick !== '匿名')
+                        .map((msg, idx) => {
+                            const date = new Date(msg.date).toLocaleString('zh-CN', {
+                                year: 'numeric',
+                                month: '2-digit',
+                                day: '2-digit',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                            });
+                            return `<div style='margin-bottom:10px;padding:8px 12px;background:#fffbe6;border-radius:6px;border:1px solid #ffe082;word-break:break-all;'>
+                                        <span style='color:#2196f3;font-weight:bold;margin-right:8px;'>${msg.nick}:</span>
+                                        <span style='color:#333;'>${msg.text}</span>
+                                        <span style='float:right;color:#999;font-size:0.95em;'>${date}</span>
+                                    </div>`;
+                        })
+                        .join('');
+                }
+                messageList.innerHTML = html;
+            } catch (err) {
+                console.error('加载评论失败:', err);
+                document.getElementById('message-list').innerHTML = "<div style='color:#aaa;'>加载评论失败，请稍后重试</div>";
+            }
+        }
+        async function addMessage() {
+            const nickname = document.getElementById('nickname-input').value.trim();
+            const text = document.getElementById('message-textarea').value.trim();
+            if (!nickname) {
+                alert('请填写昵称');
+                document.getElementById('nickname-input').focus();
+                return;
+            }
+            if (!text) {
+                alert('请输入留言内容');
+                return;
+            }
+            try {
+                const response = await fetch(`http://1.95.203.92:9099/comments/${cityAbbr}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nick: nickname, text })
+                });
+                if (response.ok) {
+                    document.getElementById('nickname-input').value = '';
+                    document.getElementById('message-textarea').value = '';
+                    loadMessageList();
+                } else {
+                    alert('提交评论失败：' + response.statusText);
+                }
+            } catch (err) {
+                console.error('提交评论失败:', err);
+                alert('提交评论失败，请检查网络连接');
+            }
+        }
+        function loadMessageTab() {
+            loadMessageList();
+            document.getElementById('message-textarea').value = '';
+        }
+        document.addEventListener('DOMContentLoaded', function() {
+            const btn = document.getElementById('add-message-btn');
+            if (btn && !btn.onclick) btn.onclick = addMessage;
+            Array.from(document.querySelectorAll('.tab-btn')).forEach(function(btn){
+                btn.onclick = function(){
+                    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+                    btn.classList.add('active');
+                    if(btn.dataset.tab==='log'){
+                        document.querySelector('.log-content').style.display = '';
+                        document.querySelector('.album-content').style.display = 'none';
+                        document.querySelector('.message-content').style.display = 'none';
+                    }else if(btn.dataset.tab==='album'){
+                        document.querySelector('.log-content').style.display = 'none';
+                        document.querySelector('.album-content').style.display = '';
+                        document.querySelector('.message-content').style.display = 'none';
+                    }else{
+                        document.querySelector('.log-content').style.display = 'none';
+                        document.querySelector('.album-content').style.display = 'none';
+                        document.querySelector('.message-content').style.display = '';
+                        loadMessageTab();
+                    }
+                };
+            });
+            loadMessageList();
+        });
+        function renderCollection() {
+          var html = images.map(function(img){
+            return '<div class="photo-item"><img src="'+img.src+'" alt=""></div>';
+          }).join('');
+          document.getElementById('photoGrid').innerHTML = html;
+        }
+        var modeBtns = document.querySelectorAll('.album-mode-btn');
+        var collection = document.querySelector('.collection-mode');
+        var slideshow = document.querySelector('.slideshow-mode');
+        var slideImg = document.querySelector('.slideshow-img');
+        var prevBtn = document.querySelector('.prev-btn');
+        var nextBtn = document.querySelector('.next-btn');
+        var current = 0;
+        var playing = false;
+        var timer = null;
+        function showSlide(idx){
+          if(idx<0) idx=images.length-1;
+          if(idx>=images.length) idx=0;
+          current=idx;
+          slideImg.src=images[idx].src;
+        }
+        function play(){
+          playing=true;
+          timer=setInterval(function(){
+            showSlide(current+1);
+          },2000);
+        }
+        function pause(){
+          playing=false;
+          if(timer) clearInterval(timer);
+        }
+        modeBtns.forEach(function(btn){
+          btn.onclick=function(){
+            modeBtns.forEach(b=>b.classList.remove('active'));
+            btn.classList.add('active');
+            if(btn.dataset.mode==='collection'){
+              collection.style.display='';
+              slideshow.style.display='none';
+              pause();
+            }else{
+              collection.style.display='none';
+              slideshow.style.display='';
+              showSlide(current);
+              play();
+            }
+          };
+        });
+        prevBtn.onclick=function(){showSlide(current-1);};
+        nextBtn.onclick=function(){showSlide(current+1);};
+        renderCollection();
+        showSlide(0);
+        (function(){
+          var modal = document.getElementById('imgModal');
+          var modalImg = document.getElementById('modalImg');
+          document.getElementById('photoGrid').onclick = function(e){
+            if(e.target && e.target.tagName==='IMG'){
+              modalImg.src = e.target.src;
+              modal.style.display = 'flex';
+            }
+          };
+          modal.onclick = function(e){
+            if(e.target === modal) modal.style.display = 'none';
+          };
+        })();
+    </script>
+</body>
+</html>

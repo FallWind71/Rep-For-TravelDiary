@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>张家界景点</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: '微软雅黑', Arial, sans-serif;
+            background: url('imgzjj/张家界背景.png') no-repeat center center fixed;
+            background-size: cover;
+            overflow-x: hidden;
+            overflow-y: hidden;
+        }
+        html {
+            overflow-x: hidden;
+            overflow-y: hidden;
+        }
+        iframe {
+            overflow-x: hidden;
+            overflow-y: hidden;
+            height: 100%;
+        }
+        .spot-menu {
+            position: relative;
+            width: 220px;
+            margin: 0;
+            padding: 0;
+            border-radius: 10px 0 0 10px !important;
+        }
+        .spot-menu ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .spot-menu li {
+            background: #fff;
+            margin-bottom: 12px;
+            padding: 14px 18px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            font-size: 1.1em;
+            color: #333;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .spot-menu li:hover,
+        .spot-menu li.active {
+            background: #ffe082;
+        }
+        .spot-content-area {
+            flex: 1 1 0;
+            background: rgba(255,255,255,0.92);
+            border-radius: 0 16px 16px 0;
+            margin: 0;
+            min-width: 0;
+            position: relative;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+            padding: 32px 24px 24px 24px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .tab-header {
+            position: absolute;
+            top: 0;
+            right: 24px;
+            display: flex;
+            width: calc(100% - 48px);
+            flex-direction: row;
+            margin-bottom: 0;
+            gap: 0;
+        }
+        .tab-underline {
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 100%;
+            height: 2px;
+            background: #e0e0e0;
+            border-radius: 2px;
+            z-index: 1;
+        }
+        .tab-btn {
+            background: #fffbe6;
+            border: 1.5px solid #ffd600;
+            border-radius: 8px 8px 0 0;
+            padding: 8px 24px;
+            font-size: 1em;
+            cursor: pointer;
+            color: #333;
+            font-weight: bold;
+            transition: background 0.2s, color 0.2s;
+        }
+        .tab-btn.active {
+            background: #ffd600;
+            color: #fff;
+        }
+        .tab-content-wrapper {
+            border: 2px dashed #bbb;
+            border-radius: 12px;
+            padding: 24px 18px 18px 18px;
+            margin-top: 16px;
+            background: #fcfcfc;
+            min-height: 120px;
+            box-sizing: border-box;
+            position: relative;
+            max-height: 520px;
+            overflow: hidden;
+        }
+        .tab-content {
+            margin: 0;
+            font-size: 1.1em;
+            min-height: 80px;
+            max-height: 480px;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+        .album-controls { text-align: right; margin-bottom: 10px; }
+        .album-mode-btn { margin-right: 8px; padding: 6px 18px; border-radius: 6px; border: 1.5px solid #ffd600; background: #fffbe6; color: #333; font-weight: bold; cursor: pointer; }
+        .album-mode-btn.active { background: #ffd600; color: #fff; }
+        .album-container { width: 100%; }
+        .photo-grid { display: flex; flex-wrap: wrap; gap: 18px; justify-content: flex-start; }
+        .photo-item { width: 180px; border-radius: 10px; overflow: hidden; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.06); text-align: center; }
+        .photo-item img { width: 100%; height: 120px; object-fit: cover; }
+        .slideshow-container { width: 320px; margin: 0 auto; position: relative; }
+        .slideshow-img { width: 320px; height: 220px; object-fit: cover; border-radius: 10px; }
+        .photo-caption, .slide-caption, .slide-counter { display: none !important; }
+        .slideshow-flex { display: flex; align-items: center; justify-content: center; }
+        .slideshow-arrow { background: #fffbe6; border: 1.5px solid #ffd600; border-radius: 50%; width: 38px; height: 38px; font-size: 10.5px; color: #333; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; margin: 0 12px; }
+        .slideshow-img { width: 320px; height: 220px; object-fit: cover; border-radius: 10px; }
+        .slideshow-mode {
+          background: url('imgzjj/张家界背景.gif') center center no-repeat;
+          background-size: cover;
+          position: relative;
+          overflow: hidden;
+        }
+        .slideshow-mode::before {
+          content: "";
+          position: absolute;
+          left: 0; top: 0; right: 0; bottom: 0;
+          background: rgba(255,255,255,0.15);
+          z-index: 1;
+          pointer-events: none;
+        }
+        .slideshow-container, .slideshow-flex, .slideshow-img, .slideshow-arrow {
+          position: relative;
+          z-index: 2;
+        }
+        .collection-mode .photo-item img {
+          width: 300px;
+          height: 210px;
+          object-fit: cover;
+          border-radius: 10px;
+        }
+        .slideshow-mode .slideshow-img {
+          width: 800px;
+          height: 520px;
+          object-fit: cover;
+          border-radius: 10px;
+        }
+        figcaption {
+            font-size: 0.98em;
+            color: #888;
+            font-weight: 400;
+            text-align: center;
+            margin-top: 6px;
+        }
+        #amap-container {
+            width: 100vw;
+            height: 300px;
+            border: 1px solid #ddd;
+            background: #f9f9f9;
+            position: relative;
+            z-index: 1;
+        }
+    </style>
+</head>
+<body>
+    <audio id="bgm" src="music/szc.mp3" autoplay loop style="display:none"></audio>
+    <script>
+      document.addEventListener('click', function playMusicOnce() {
+        var audio = document.getElementById('bgm');
+        if (audio.paused) audio.play();
+        document.removeEventListener('click', playMusicOnce);
+      });
+    </script>
+    <script src="https://webapi.amap.com/maps?v=2.0&key=24188d2488c7012aa53d83d4a189370b"></script>
+    <script>
+      var spots = [
+        {
+          name: '张家界国家森林公园',
+          position: [110.550378, 29.344608],
+          address: '湖南省张家界市武陵源区'
+        },
+        {
+          name: '七十二奇楼',
+          position: [110.478874, 29.117245],
+          address: '湖南省张家界市永定区解放路72号'
+        }
+      ];
+      var centerLng = (110.550378 + 110.478874) / 2;
+      var centerLat = (29.344608 + 29.117245) / 2;
+      var centerPosition = [centerLng, centerLat];
+      var map, markers = [];
+      window.onload = function() {
+        try {
+          map = new AMap.Map('amap-container', {
+            center: spots[0].position,
+            zoom: 14,
+            viewMode: '2D'
+          });
+          spots.forEach(function(spot, index) {
+            var circle = new AMap.Circle({
+              center: spot.position,
+              radius: 100,
+              strokeColor: '#0066cc',
+              strokeWeight: 2,
+              strokeOpacity: 1,
+              fillColor: '#0066cc',
+              fillOpacity: 1,
+              zIndex: 10
+            });
+            var infoWindow = new AMap.InfoWindow({
+              content: `<div style="padding:12px;transform:scale(0.9);border-radius:8px;"><h3 style="margin:0 0 6px 0;color:#333;font-size:18px;font-weight:bold;text-align:center;">${spot.name}</h3><p style="margin:0;color:#666;font-size:14px;text-align:center;line-height:1.4;">${spot.address}</p></div>`,
+              offset: new AMap.Pixel(0, -1)
+            });
+            markers.push({
+              position: spot.position,
+              circle: circle,
+              infoWindow: infoWindow,
+              name: spot.name
+            });
+          });
+          var menuLis = document.querySelectorAll('.spot-menu li');
+          if(menuLis.length) {
+            menuLis[0].click();
+          }
+        } catch (error) {
+          document.getElementById('amap-container').innerHTML = '<div style="width:100%;height:100%;background:#f0f0f0;display:flex;align-items:center;justify-content:center;color:#666;font-size:16px;">地图加载中...</div>';
+        }
+      };
+      function handleMenuClick(index) {
+        if (map && markers[index]) {
+          map.setCenter(markers[index].position);
+          map.setZoom(14);
+          markers.forEach(function(m) {
+            map.remove(m.circle);
+          });
+          map.add(markers[index].circle);
+          markers[index].infoWindow.open(map, markers[index].position);
+        }
+      }
+    </script>
+    <div id="amap-container" style="width:100vw;height:300px;"></div>
+    <hr style="margin:0; border: none; border-top: 2px solid #ffd600; width: 100vw;">
+    <div style="display:flex;align-items:stretch;height:calc(100vh - 300px);margin:0;padding:0;">
+        <div class="spot-menu" style="width:220px;background:#fff;box-sizing:border-box;margin:0;padding:0;">
+            <div style="font-size:1.3em;font-weight:bold;margin-bottom:18px;color:#333;letter-spacing:2px;
+                background:#fff;border:2px solid #ffd600;border-radius:10px;padding:10px 0;text-align:center;width:100%;box-sizing:border-box;box-shadow:0 2px 8px rgba(0,0,0,0.06);margin:0;">
+                景点打卡
+            </div>
+            <ul style="background:#fff;border:2px solid #ffd600;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,0.06);padding:10px 0 10px 0;margin:0;width:100%;box-sizing:border-box;">
+                <li>张家界国家森林公园</li>
+                <li>七十二奇楼</li>
+            </ul>
+        </div>
+        <hr style="align-self:stretch;margin:0;padding:0;border:none;border-left:2px solid #ffd600;height:100%;">
+        <div class="spot-content-area">
+          <div class="tab-header">
+            <button class="tab-btn active" data-tab="log">日志</button>
+            <button class="tab-btn" data-tab="album">相册</button>
+            <button class="tab-btn" data-tab="message">留言板</button>
+            <div class="tab-underline"></div>
+          </div>
+          <div class="tab-content-wrapper">
+            <div class="tab-content log-content">这里是日志内容</div>
+            <div class="tab-content album-content" style="display:none;">
+              <div class="album-controls" style="margin-bottom:16px;">
+                <button class="album-mode-btn active" data-mode="collection">集合模式</button>
+                <button class="album-mode-btn" data-mode="slideshow">放映模式</button>
+              </div>
+              <div class="album-container">
+                <div class="collection-mode">
+                  <div class="photo-grid" id="photoGrid"></div>
+                </div>
+                <div class="slideshow-mode" style="display:none;">
+                  <div class="slideshow-container slideshow-flex">
+                    <button class="prev-btn slideshow-arrow">❮</button>
+                    <img class="slideshow-img" src="/imgzjj/1.jpg" alt="放映">
+                    <button class="next-btn slideshow-arrow">❯</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="tab-content message-content" style="display:none;">
+              <div style='margin-bottom:12px;display:flex;gap:8px;align-items:center;'>
+                <span>欢迎留言!!!</span><span style='font-size:40px;'>✍</span><span style='font-size:40px;'>✍</span>
+              </div>
+              <input id="nickname-input" type="text" placeholder="昵称（必填）" style="width:120px;padding:4px 8px;border-radius:6px;border:1px solid #ffd600;font-size:1em;" maxlength="12">
+              <br>
+              <br>
+              <textarea id="message-textarea" style="width:100%;height:60px;resize:vertical;border-radius:8px;border:1px solid #ffd600;padding:8px;font-size:1em;box-sizing:border-box;" placeholder="想说些什么呢🤔"></textarea>
+              <br>
+              <span style='font-size:20px; transform: scaleX(-1); display: inline-block;'>💕</span><span style='font-size:20px;'>💓</span>
+              <button id="add-message-btn" style='background:#ffd600;color:#fff;border:none;border-radius:6px;padding:6px 18px;font-size:1em;cursor:pointer;'>添加</button>
+              <span style='font-size:20px;'>💓</span><span style='font-size:20px;'>💕</span>
+              <div id="message-list" style="margin-top:18px;"></div>
+            </div>
+          </div>
+        </div>
+    </div>
+    <div id="imgModal" style="display:none;position:fixed;z-index:9999;left:0;top:0;width:100vw;height:100vh;background:rgba(0,0,0,0.7);align-items:center;justify-content:center;">
+      <img id="modalImg" src="" alt="大图" style="max-width:90vw;max-height:90vh;box-shadow:0 4px 32px #000;border-radius:12px;">
+    </div>
+    <script>
+        var menuLis = document.querySelectorAll('.spot-menu li');
+        var spotLogs = [
+          `<div>
+            <p style="font-size:1.5em; color:red;">Day 0</p>
+            <hr>
+            <p>2024.10.3，赶在国庆节西安即将迎来第一波小（大）降温前逃离西安😀</p>
+            <img src="imgzjj/1.jpg" width=40%>
+            <img src="imgzjj/2.jpg" width=18%>
+            <figure style="text-align:center;">
+              <img src="imgzjj/4.jpg" width=35%></img>
+              <img src="imgzjj/3.jpg" width=25%></img>
+              <img src="imgzjj/13.jpg" width=30%></img>
+              <figcaption>
+                下飞机先来西站接我的好基友wqm（居然不抽王源周边，差评😉）。
+              </figcaption>
+            </figure>
+            <p style="text-decoration:underline dotted green;">因为来到景区已是下午了，距离景区闭园不久了，所以我们就进里面随便逛了一条小路。故把今日记为Day 0。</p>
+            <figure>
+              <img src="imgzjj/6.jpg" width=40%>
+              <img src="imgzjj/5.jpg" width=40%>
+              <figcaption>南门一景
+              </figure>
+              <figure>
+                <img src="imgzjj/8.jpg" width=80%></img>
+                <img src="imgzjj/7.jpg" width=40%></img>
+                <img src="imgzjj/14.jpg" width=30%></img>
+                <figcaption>真的有那种意境喂😄</figcaption></figure>
+                <figure style="text-align:center;">
+                  <img src="imgzjj/10.jpg" width=20%>\</img>
+                  <figcaption>
+                   捡到一颗松果，好硬😟
+                  </figcaption>
+                </figure>
+                <figure>
+                  <img src="imgzjj/9.jpg" width=30%></img>
+                  <img src="imgzjj/11.jpg" width=30%></img>
+                  <figcaption>
+                   人机wqm硬要带我走了一条“未曾选择的小路”，终于在天黑前下山了。
+                  </figcaption>
+                  </figure>
+                  <figure style="text-align:center;">
+                    <img src="imgzjj/12.jpg" width=20%></img>
+                    <figcaption>
+                      当天微信朋友圈
+                    </figcaption>
+                    </figure>
+                    <hr>
+                 <p style="font-size:1.5em; color:red;">Day 1</p>
+                 <hr>
+                 <p style="font-size:1.4em; color:pink;">
+                  来之前就听说张家界的韩国游客多，果不其然，确实如此。不知是哪个人才把带韩国家人去张家界旅游这件事和孝道结合到一起的👍👍👍</p>
+                 <p style="color:blue;">先放张我们两天的路线图</p>
+                 <img src="imgzjj/1.png" width="85%" style="display: block; margin: 0 auto;">
+                 <p>Day 1 从杨家界坐索道上山暴走。</p>
+                 <figure>
+                  <img src="imgzjj/19.jpg" width="35%" ></img>
+                  <img src="imgzjj/15.jpg" width="35%" ></img>
+                  <figcaption>来都来了</figcaption></figure>
+                 <figure>
+                    <img src="imgzjj/22.jpg" width="40%" ></img>
+                    <img src="imgzjj/30.jpg" width="40%" ></img>
+                    <figcaption>缆车，视野不错</figcaption></figure>
+                 <figure>
+                      <img src="imgzjj/16.jpg" width="40%" ></img>
+                      <img src="imgzjj/17.jpg" width="60%" ></img>
+                      <img src="imgzjj/18.jpg" width="40%" ></img>
+                      <img src="imgzjj/20.jpg" width="40%" ></img>
+                      <img src="imgzjj/21.jpg" width="40%" ></img>
+                      <figcaption>😫爬山，爬到脚软（人好多）😫</figcaption></figure>
+                  <figure>
+                    <img src="imgzjj/23.jpg" width="40%" ></img>
+                    <img src="imgzjj/48.jpg" width="25%" ></img>
+                    <figcaption>
+                     嬉皮笑脸的wqm
+                    </figcaption>
+                    </figure>
+                    <figure style="text-align:center;">
+                      <img src="imgzjj/25.jpg" width="60%" ></img>
+                      <img src="imgzjj/26.jpg" width="30%" ></img>
+                      <img src="imgzjj/27.jpg" width="30%" ></img>
+                      <img src="imgzjj/28.jpg" width="30%" ></img>
+                      <figcaption>下山了，终于不走山路了，下一站是金鞭溪！！</figcaption></figure>
+                  <figure style="text-align:center;">
+                      <img src="imgzjj/25.jpg" width="60%" ></img>
+                      <img src="imgzjj/26.jpg" width="30%" ></img>
+                      <img src="imgzjj/27.jpg" width="30%" ></img>
+                      <img src="imgzjj/28.jpg" width="30%" ></img>
+                      <figcaption>金鞭溪铺垫——游山玩水，先游山，再玩水</figcaption></figure>
+                  <figure style="text-align:center;">
+                      <img src="imgzjj/24.jpg" width="30%" ></img>
+                      <img src="imgzjj/29.jpg" width="30%" ></img>
+                      <img src="imgzjj/32.jpg" width="30%" ></img>
+                      <img src="imgzjj/33.jpg" width="30%" ></img>
+                      <img src="imgzjj/34.jpg" width="30%" ></img>
+                      <img src="imgzjj/36.jpg" width="30%" ></img>
+                      <img src="imgzjj/37.jpg" width="30%" ></img>
+                      <img src="imgzjj/38.jpg" width="30%" ></img>
+                      <img src="imgzjj/41.jpg" width="30%" ></img>
+                      <figcaption>金鞭溪：每一处都是山水画</figcaption></figure>
+                      <figure style="text-align:center;">
+                      <img src="imgzjj/31.jpg" width="30%" ></img>
+                      <img src="imgzjj/42.jpg" width="30%" ></img>
+                      <img src="imgzjj/43.jpg" width="30%" ></img>
+                      <img src="imgzjj/44.jpg" width="30%" ></img>
+                      <img src="imgzjj/45.jpg" width="30%" ></img>
+                      <img src="imgzjj/47.jpg" width="30%" ></img>
+                      <figcaption>奇山异石</figcaption></figure>
+                      <figure style="text-align:center;">
+                      <img src="imgzjj/35.jpg" width="30%" ></img>
+                      <img src="imgzjj/39.jpg" width="30%" ></img>
+                      <img src="imgzjj/40.jpg" width="30%" ></img>
+                      <img src="imgzjj/46.jpg" width="30%" ></img>
+                      <figcaption>你就说专不专业</figcaption></figure>
+                      <hr>
+                      <p style="font-size: 1.5em; color:red;">Day 2</p>
+                      <hr>
+                      <p style="font-size:1.4em; color:pink;">第二天就主要游玩了黄石寨这一片，其实也有点遗憾，因为需要排很长的队所以放弃乘坐所谓的“亚洲第一天梯”——百龙天梯。</p>
+                      <figure style="text-align:center;">
+                        <img src="imgzjj/62.jpg" width=55%></img>
+                        <figcaption>景区地图</figcaption>
+                        </figure>
+                      <figure style="text-align:center;">
+                        <img src="imgzjj/58.jpg" style="width: 30%;"></img>
+                        <img src="imgzjj/60.jpg" style="width: 50%;"></img>
+                        <figcaption>黄石寨标志</figcaption>
+                      </figure>
+                      <figure style="text-align:center;">
+                        <img src="imgzjj/50.jpg" style="width: 30%;"></img>
+                        <img src="imgzjj/52.jpg" style="width: 30%;"></img>
+                        <img src="imgzjj/61.jpg" style="width: 30%;"></img>
+                        <figcaption>名副其实，佩服起名字的人的想象力</figcaption>
+                      </figure>
+                      <figure style="text-align:center;">
+                        <img src="imgzjj/49.jpg" style="width: 60%;"></img>
+                        <img src="imgzjj/56.jpg" style="width: 60%;"></img>
+                        <figcaption>连绵起伏的山峦（脚已废）</figcaption>
+                        </figure>
+                        <figure style="text-align:center;">
+                        <img src="imgzjj/53.jpg" style="width: 60%;"></img>
+                        <img src="imgzjj/51.jpg" style="width: 60%;"></img>
+                        <figcaption>😨恐高者勿入😨</figcaption>
+                        </figure>
+                      <figure style="text-align:center;">
+                        <img src="imgzjj/55.jpg" style="width: 50%;"></img>
+                        <figcaption>从前有座山，山里有座庙~~</figcaption>
+                        </figure>
+                        <figure style="text-align:center;">
+                          <img src="imgzjj/59.jpg" style="width: 60%;"></img>
+                          <figcaption>密集恐惧症者勿入......</figcaption>
+                          </figure>
+                      <figure style="text-align:center;">
+                        <img src="imgzjj/54.jpg" style="width: 60%;"></img>
+                        <figcaption>景区门口：别了——张家界国家森林公园！😫😫</figcaption>
+                        <img src="imgzjj/57.jpg" style="width: 60%;"></img>
+                        <figcaption>❤️❤️QQ动态❤️❤️</figcaption>
+            </div>`,
+          `<div>
+            <p style="font-size: 1.5em; color:red;">10.05晚上（离开森林公园后），前往下一个景点——七十二奇楼，感受湘西文化的独特魅力。</p>
+            <hr>
+            <p style="font-size:1.1em; color:pink;">张家界实际上就一个依山傍水的小县城，高楼大厦几乎没有，但这里的人靠山吃山，靠水吃水，通过旅游业带动当地经济，让“张家界”这一地名响彻全国，甚至亚洲。</p>
+            <p>说来遗憾，武陵源（位于张家界国家森林公园里面，著名的索溪峪坐落于此，因时间紧张故跳过）和天门山（因天门洞而闻名）都这两个景点都没有去。还有鬼谷峡门也因为已经废弃而，考虑到安全问题也放弃了。理想的张家界游玩时间，个人觉得应该为四到五天。</p>
+             <hr>
+             <p style="font-size: 1.5em; color:red;">10.05晚</p>
+             <hr>
+             晚上的七十二奇楼震撼至极！！上图：
+             <figure style="text-align:center;">
+             <img src="imgzjj/64.jpg" style="width: 40%;"></img>
+             <img src="imgzjj/65.jpg" style="width: 40%;"></img>
+             <figcaption>七十二奇楼夜景</figcaption>
+             </figure>
+            <figure style="text-align:center;">
+            <img src="imgzjj/63.jpg" style="width: 70%;"></img>
+            <img src="imgzjj/69.jpg" style="width: 40%;"></img>
+            <figcaption>wqm的手😒😒</figcaption>
+            </figure>
+            <figure style="text-align:center;">
+              <img src="imgzjj/66.jpg" style="width: 40%;"></img>
+              <img src="imgzjj/67.jpg" style="width: 40%;"></img>
+              <figcaption>严禁攀爬......那我问你？！</figcaption>
+            </figure>
+            <figure style="text-align:center;">
+              <img src="imgzjj/68.jpg" style="width: 40%;"></img>
+              <figcaption>论共享电瓶如何塞下两个成年男性——小朋友不要模仿......
+                <br>
+                难离难舍想抱紧些，茫茫人生好像荒野~~</figcaption>
+                </figure>
+              <hr>
+              <p style="font-size: 1.5em; color:red;">10.06早</p>
+             <hr>
+             <figure style="text-align:center;">
+             <img src="imgzjj/73.jpg" style="width: 40%;"></img>
+             <img src="imgzjj/70.jpg" style="width: 40%;"></img>
+             <img src="imgzjj/71.jpg" style="width: 40%;"></img>
+             <img src="imgzjj/72.jpg" style="width: 40%;"></img>
+              <figcaption>早上的七十二奇楼，原来楼下全是商业街</figcaption>
+              </figure>
+              <hr>
+              <p style="font-size: 1.5em; color:red;">10.06晚，回学校😭😭</p>
+              <img src="imgzjj/74.jpg" style="width: 50%;"></img>
+              <hr>
+              <br>
+              <p style="font-size: 1.5em; color:green;">关于我和wqm的轶事</p>
+              <br>
+              <p style="text-decoration: underline blue;color:red;">说来话长，我们小学和初中都是同班同学，结果这家伙初中玩爽了去了二中普通班🤷🤷，后面也就很少见面了......</p>
+              <p style="text-decoration: underline blue;color:red;">后来他去了湖南邵阳读大学，现在他开始跟着家人做生意了（苟富贵勿相忘😭）</p>
+              <p>总之，人生如逆旅，且行且珍惜......</p>
+              <p>最后，祝友谊长存。</p>
+            </div>`
+        ];
+        var images = [
+          {src:'/imgzjj/1.jpg'},
+          {src:'/imgzjj/2.jpg'},
+          {src:'/imgzjj/3.jpg'},
+          {src:'/imgzjj/4.jpg'},
+          {src:'/imgzjj/5.jpg'},
+          {src:'/imgzjj/6.jpg'},
+          {src:'/imgzjj/7.jpg'},
+          {src:'/imgzjj/8.jpg'},
+          {src:'/imgzjj/9.jpg'},
+          {src:'/imgzjj/10.jpg'},
+          {src:'/imgzjj/11.jpg'},
+          {src:'/imgzjj/12.jpg'},
+          {src:'/imgzjj/13.jpg'},
+          {src:'/imgzjj/14.jpg'},
+          {src:'/imgzjj/15.jpg'},
+          {src:'/imgzjj/16.jpg'},
+          {src:'/imgzjj/17.jpg'},
+          {src:'/imgzjj/18.jpg'},
+          {src:'/imgzjj/19.jpg'},
+          {src:'/imgzjj/20.jpg'},
+          {src:'/imgzjj/21.jpg'},
+          {src:'/imgzjj/22.jpg'},
+          {src:'/imgzjj/23.jpg'},
+          {src:'/imgzjj/24.jpg'},
+          {src:'/imgzjj/25.jpg'},
+          {src:'/imgzjj/26.jpg'},
+          {src:'/imgzjj/27.jpg'},
+          {src:'/imgzjj/28.jpg'},
+          {src:'/imgzjj/29.jpg'},
+          {src:'/imgzjj/30.jpg'},
+          {src:'/imgzjj/31.jpg'},
+          {src:'/imgzjj/32.jpg'},
+          {src:'/imgzjj/33.jpg'},
+          {src:'/imgzjj/34.jpg'},
+          {src:'/imgzjj/35.jpg'},
+          {src:'/imgzjj/36.jpg'},
+          {src:'/imgzjj/37.jpg'},
+          {src:'/imgzjj/38.jpg'},
+          {src:'/imgzjj/39.jpg'},
+          {src:'/imgzjj/40.jpg'},
+          {src:'/imgzjj/41.jpg'},
+          {src:'/imgzjj/42.jpg'},
+          {src:'/imgzjj/43.jpg'},
+          {src:'/imgzjj/44.jpg'},
+          {src:'/imgzjj/45.jpg'},
+          {src:'/imgzjj/46.jpg'},
+          {src:'/imgzjj/47.jpg'},
+          {src:'/imgzjj/48.jpg'},
+          {src:'/imgzjj/49.jpg'},
+          {src:'/imgzjj/50.jpg'},
+          {src:'/imgzjj/51.jpg'},
+          {src:'/imgzjj/52.jpg'},
+          {src:'/imgzjj/53.jpg'},
+          {src:'/imgzjj/54.jpg'},
+          {src:'/imgzjj/55.jpg'},
+          {src:'/imgzjj/56.jpg'},
+          {src:'/imgzjj/57.jpg'},
+          {src:'/imgzjj/58.jpg'},
+          {src:'/imgzjj/59.jpg'},
+          {src:'/imgzjj/60.jpg'},
+          {src:'/imgzjj/61.jpg'},
+          {src:'/imgzjj/62.jpg'},
+          {src:'/imgzjj/63.jpg'},
+          {src:'/imgzjj/64.jpg'},
+          {src:'/imgzjj/65.jpg'},
+          {src:'/imgzjj/66.jpg'},
+          {src:'/imgzjj/67.jpg'},
+          {src:'/imgzjj/68.jpg'},
+          {src:'/imgzjj/69.jpg'},
+          {src:'/imgzjj/70.jpg'},
+          {src:'/imgzjj/71.jpg'},
+          {src:'/imgzjj/72.jpg'},
+          {src:'/imgzjj/73.jpg'},
+          {src:'/imgzjj/74.jpg'}
+        ];
+        function updateSpotContent(idx) {
+          document.querySelector('.log-content').innerHTML = spotLogs[idx];
+        }
+        if(menuLis.length) {
+          menuLis.forEach(function(l){l.classList.remove('active');});
+          menuLis[0].classList.add('active');
+          updateSpotContent(0);
+        }
+        menuLis.forEach(function(li,idx){
+          li.onclick = function(){
+            menuLis.forEach(function(l){l.classList.remove('active');});
+            li.classList.add('active');
+            updateSpotContent(idx);
+            handleMenuClick(idx);
+          };
+        });
+        var cityAbbr = 'zjj';
+        async function loadMessageList() {
+            try {
+                const response = await fetch(`http://1.95.203.92:9099/comments/${cityAbbr}`);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const list = await response.json();
+                const messageList = document.getElementById('message-list');
+                let html = '';
+                if (list.length === 0) {
+                    html = "<div style='color:#aaa;'>暂无留言</div>";
+                } else {
+                    html = list
+                        .filter(msg => msg.nick && msg.nick !== '匿名')
+                        .map((msg, idx) => {
+                            const date = new Date(msg.date).toLocaleString('zh-CN', {
+                                year: 'numeric',
+                                month: '2-digit',
+                                day: '2-digit',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                            });
+                            return `<div style='margin-bottom:10px;padding:8px 12px;background:#fffbe6;border-radius:6px;border:1px solid #ffe082;word-break:break-all;'>
+                                        <span style='color:#2196f3;font-weight:bold;margin-right:8px;'>${msg.nick}:</span>
+                                        <span style='color:#333;'>${msg.text}</span>
+                                        <span style='float:right;color:#999;font-size:0.95em;'>${date}</span>
+                                    </div>`;
+                        })
+                        .join('');
+                }
+                messageList.innerHTML = html;
+            } catch (err) {
+                console.error('加载评论失败:', err);
+                document.getElementById('message-list').innerHTML = "<div style='color:#aaa;'>加载评论失败，请稍后重试</div>";
+            }
+        }
+        async function addMessage() {
+            const nickname = document.getElementById('nickname-input').value.trim();
+            const text = document.getElementById('message-textarea').value.trim();
+            if (!nickname) {
+                alert('请填写昵称');
+                document.getElementById('nickname-input').focus();
+                return;
+            }
+            if (!text) {
+                alert('请输入留言内容');
+                return;
+            }
+            try {
+                const response = await fetch(`http://1.95.203.92:9099/comments/${cityAbbr}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nick: nickname, text })
+                });
+                if (response.ok) {
+                    document.getElementById('nickname-input').value = '';
+                    document.getElementById('message-textarea').value = '';
+                    loadMessageList();
+                } else {
+                    alert('提交评论失败：' + response.statusText);
+                }
+            } catch (err) {
+                console.error('提交评论失败:', err);
+                alert('提交评论失败，请检查网络连接');
+            }
+        }
+        function loadMessageTab() {
+            loadMessageList();
+            document.getElementById('message-textarea').value = '';
+        }
+        document.addEventListener('DOMContentLoaded', function() {
+            const btn = document.getElementById('add-message-btn');
+            if (btn && !btn.onclick) btn.onclick = addMessage;
+            Array.from(document.querySelectorAll('.tab-btn')).forEach(function(btn){
+                btn.onclick = function(){
+                    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+                    btn.classList.add('active');
+                    if(btn.dataset.tab==='log'){
+                        document.querySelector('.log-content').style.display = '';
+                        document.querySelector('.album-content').style.display = 'none';
+                        document.querySelector('.message-content').style.display = 'none';
+                    }else if(btn.dataset.tab==='album'){
+                        document.querySelector('.log-content').style.display = 'none';
+                        document.querySelector('.album-content').style.display = '';
+                        document.querySelector('.message-content').style.display = 'none';
+                    }else{
+                        document.querySelector('.log-content').style.display = 'none';
+                        document.querySelector('.album-content').style.display = 'none';
+                        document.querySelector('.message-content').style.display = '';
+                        loadMessageTab();
+                    }
+                };
+            });
+            loadMessageList();
+        });
+        function renderCollection() {
+          var html = images.map(function(img){
+            return '<div class="photo-item"><img src="'+img.src+'" alt=""></div>';
+          }).join('');
+          document.getElementById('photoGrid').innerHTML = html;
+        }
+        var modeBtns = document.querySelectorAll('.album-mode-btn');
+        var collection = document.querySelector('.collection-mode');
+        var slideshow = document.querySelector('.slideshow-mode');
+        var slideImg = document.querySelector('.slideshow-img');
+        var prevBtn = document.querySelector('.prev-btn');
+        var nextBtn = document.querySelector('.next-btn');
+        var current = 0;
+        var playing = false;
+        var timer = null;
+        function showSlide(idx){
+          if(idx<0) idx=images.length-1;
+          if(idx>=images.length) idx=0;
+          current=idx;
+          slideImg.src=images[idx].src;
+        }
+        function play(){
+          playing=true;
+          timer=setInterval(function(){
+            showSlide(current+1);
+          },2000);
+        }
+        function pause(){
+          playing=false;
+          if(timer) clearInterval(timer);
+        }
+        modeBtns.forEach(function(btn){
+          btn.onclick=function(){
+            modeBtns.forEach(b=>b.classList.remove('active'));
+            btn.classList.add('active');
+            var albumContent = document.querySelector('.album-content');
+            if(btn.dataset.mode==='collection'){
+              collection.style.display='';
+              slideshow.style.display='none';
+              albumContent.style.overflowY = 'auto';
+              pause();
+            }else{
+              collection.style.display='none';
+              slideshow.style.display='';
+              albumContent.style.overflowY = 'hidden';
+              showSlide(current);
+              play();
+            }
+          };
+        });
+        prevBtn.onclick=function(){showSlide(current-1);};
+        nextBtn.onclick=function(){showSlide(current+1);};
+        renderCollection();
+        showSlide(0);
+        (function(){
+          var modal = document.getElementById('imgModal');
+          var modalImg = document.getElementById('modalImg');
+          document.getElementById('photoGrid').onclick = function(e){
+            if(e.target && e.target.tagName==='IMG'){
+              modalImg.src = e.target.src;
+              modal.style.display = 'flex';
+            }
+          };
+          modal.onclick = function(e){
+            if(e.target === modal) modal.style.display = 'none';
+          };
+        })();
+    </script>
+</body>
+</html>

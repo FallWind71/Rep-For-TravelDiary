@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>九江景点</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: '微软雅黑', Arial, sans-serif;
+            background: url('/imagesxjp/九江背景.png') no-repeat center center fixed;
+            background-size: cover;
+            overflow-x: hidden;
+            overflow-y: hidden;
+        }
+        html {
+            overflow-x: hidden;
+            overflow-y: hidden;
+        }
+        iframe {
+            overflow-x: hidden;
+            overflow-y: hidden;
+            height: 100%;
+        }
+
+        .spot-menu {
+            position: relative;
+            width: 220px;
+            margin: 0;
+            padding: 0;
+            border-radius: 10px 0 0 10px !important;
+        }
+        .spot-menu ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .spot-menu li {
+            background: #fff;
+            margin-bottom: 12px;
+            padding: 14px 18px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            font-size: 1.1em;
+            color: #333;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .spot-menu li:hover,
+        .spot-menu li.active {
+            background: #ffe082;
+        }
+        .spot-content-area {
+            flex: 1 1 0;
+            background: rgba(255,255,255,0.92);
+            border-radius: 0 16px 16px 0;
+            margin: 0;
+            min-width: 0;
+            position: relative;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+            padding: 32px 24px 24px 24px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden; /* 防止子元素滚动条溢出 */
+        }
+        .tab-header {
+            position: absolute;
+            top: 0;
+            right: 24px;
+            display: flex;
+            width: calc(100% - 48px);
+            flex-direction: row;
+            margin-bottom: 0;
+            gap: 0;
+        }
+        .tab-underline {
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 100%;
+            height: 2px;
+            background: #e0e0e0;
+            border-radius: 2px;
+            z-index: 1;
+        }
+        .tab-btn {
+            background: #fffbe6;
+            border: 1.5px solid #ffd600;
+            border-radius: 8px 8px 0 0;
+            padding: 8px 24px;
+            font-size: 1em;
+            cursor: pointer;
+            color: #333;
+            font-weight: bold;
+            transition: background 0.2s, color 0.2s;
+        }
+        .tab-btn.active {
+            background: #ffd600;
+            color: #fff;
+        }
+        .tab-content-wrapper {
+            border: 2px dashed #bbb;
+            border-radius: 12px;
+            padding: 24px 18px 18px 18px;
+            margin-top: 16px;
+            background: #fcfcfc;
+            min-height: 120px;
+            box-sizing: border-box;
+            position: relative;
+            max-height: 520px; /* 限制最大高度 */
+            overflow: hidden;  /* 防止滚动条溢出 */
+        }
+        .tab-content {
+            margin: 0;
+            font-size: 1.1em;
+            min-height: 80px;
+            max-height: 480px; /* 比wrapper略小，留出padding */
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+        .album-controls { text-align: right; margin-bottom: 10px; }
+        .album-mode-btn { margin-right: 8px; padding: 6px 18px; border-radius: 6px; border: 1.5px solid #ffd600; background: #fffbe6; color: #333; font-weight: bold; cursor: pointer; }
+        .album-mode-btn.active { background: #ffd600; color: #fff; }
+        .album-container { width: 100%; }
+        .photo-grid { display: flex; flex-wrap: wrap; gap: 18px; justify-content: flex-start; }
+        .photo-item { width: 180px; border-radius: 10px; overflow: hidden; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.06); text-align: center; }
+        .photo-item img { width: 100%; height: 120px; object-fit: cover; }
+        .slideshow-container { width: 320px; margin: 0 auto; position: relative; }
+        .slideshow-img { width: 320px; height: 220px; object-fit: cover; border-radius: 10px; }
+        .photo-caption, .slide-caption, .slide-counter { display: none !important; }
+        .slideshow-flex { display: flex; align-items: center; justify-content: center; }
+        .slideshow-arrow { background: #fffbe6; border: 1.5px solid #ffd600; border-radius: 50%; width: 38px; height: 38px; font-size: 10.5px; color: #333; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; margin: 0 12px; }
+        .slideshow-img { width: 320px; height: 220px; object-fit: cover; border-radius: 10px; }
+        .slideshow-mode {
+          background: url('/imgszc/深圳背景.gif') center center no-repeat;
+          background-size: cover;
+          position: relative;
+          overflow: hidden; /* 禁用滚动条 */
+        }
+        .slideshow-mode::before {
+          content: "";
+          position: absolute;
+          left: 0; top: 0; right: 0; bottom: 0;
+          background: rgba(255,255,255,0.15);
+          z-index: 1;
+          pointer-events: none;
+        }
+        .slideshow-container, .slideshow-flex, .slideshow-img, .slideshow-arrow {
+          position: relative;
+          z-index: 2;
+        }
+        /* ↓↓↓ 你可以在这里自定义两种模式的图片大小 ↓↓↓ */
+        .collection-mode .photo-item img {
+          width: 300px;   /* 集合模式图片宽度，按需修改 */
+          height: 210px;  /* 集合模式图片高度，按需修改 */
+          object-fit: cover;
+          border-radius: 10px;
+        }
+        .slideshow-mode .slideshow-img {
+          width: 800px;   /* 放映模式图片宽度，按需修改 */
+          height: 520px;  /* 放映模式图片高度，按需修改 */
+          object-fit: cover;
+          border-radius: 10px;
+        }
+        /* ↑↑↑ 你可以在这里自定义两种模式的图片大小 ↑↑↑ */
+
+        figcaption {
+            font-size: 0.98em;
+            color: #888;
+            font-weight: 400;
+            text-align: center;
+            margin-top: 6px;
+        }
+        /* 高德地图容器样式 */
+        #amap-container {
+            width: 100vw;
+            height: 300px;
+            border: 1px solid #ddd;
+            background: #f9f9f9;
+            position: relative;
+            z-index: 1;
+        }
+    </style>
+</head>
+<body>
+    <audio id="bgm" src="/music/szc.mp3" autoplay loop style="display:none"></audio>
+    <script>
+      document.addEventListener('click', function playMusicOnce() {
+        var audio = document.getElementById('bgm');
+        if (audio.paused) audio.play();
+        document.removeEventListener('click', playMusicOnce);
+      });
+    </script>
+    <script src="https://webapi.amap.com/maps?v=2.0&key=762fa3a9356ba9e93b1f063fd5984ad0"></script>
+    <script>
+      // 景点坐标数据
+      /*var spots = [
+        {
+          name: '',
+          position: [113.936, 22.593], // 哈尔滨工业大学深圳校区坐标
+          address: ''
+        },
+        {
+          name: '',
+          position: [113.931, 22.595], // 南方科技大学坐标
+          address: '深圳市南山区学苑大道1088号'
+        },
+        {
+          name: '世界之窗',
+          position: [113.974, 22.539], // 世界之窗坐标
+          address: '深圳市南山区深南大道9037号'
+        },
+        {
+          name: '深圳西交同乡会',
+          position: [113.945, 22.598], // 深圳塘朗君璞酒店坐标
+          address: '深圳市南山区塘朗君璞酒店'
+        }
+      ];
+      
+      // 计算四个景点的中心位置
+      var centerLng = (113.936 + 113.931 + 113.974 + 113.945) / 4; // 经度平均值
+      var centerLat = (22.593 + 22.595 + 22.539 + 22.598) / 4; // 纬度平均值
+      var centerPosition = [centerLng, centerLat]; // 中心位置
+      
+      var map, markers = [];
+      
+      // 等待页面加载完成后初始化地图
+      window.onload = function() {
+        try {
+          map = new AMap.Map('amap-container', {
+            center: centerPosition, // 使用计算出的中心位置
+            zoom: 12,
+            viewMode: '2D'
+          });
+          
+          // 添加景点位置（无标记）
+          spots.forEach(function(spot, index) {
+            // 创建蓝色实心圆点（初始隐藏）
+            var circle = new AMap.Circle({
+              center: spot.position,
+              radius: 100,
+              strokeColor: '#0066cc',
+              strokeWeight: 2,
+              strokeOpacity: 1,
+              fillColor: '#0066cc',
+              fillOpacity: 1,
+              zIndex: 10
+            });
+            
+            // 添加信息窗口
+            var infoWindow = new AMap.InfoWindow({
+              content: `<div style="padding:12px;transform:scale(0.9);border-radius:8px;"><h3 style="margin:0 0 6px 0;color:#333;font-size:18px;font-weight:bold;text-align:center;">${spot.name}</h3><p style="margin:0;color:#666;font-size:14px;text-align:center;line-height:1.4;">${spot.address}</p></div>`,
+              offset: new AMap.Pixel(0, -1)
+            });
+            
+            // 存储光圈和信息窗口
+            markers.push({
+              position: spot.position,
+              circle: circle,
+              infoWindow: infoWindow,
+              name: spot.name
+            });
+          });
+          // 固定地图位置，不自动适配
+          // 初始化后默认聚焦第一个景点（哈工深圳校区）
+          handleMenuClick(0);
+          
+          console.log('高德地图初始化成功，已添加景点标记');
+        } catch (error) {
+          console.error('高德地图初始化失败:', error);
+          // 如果地图加载失败，显示一个占位符
+          document.getElementById('amap-container').innerHTML = '<div style="width:100%;height:100%;background:#f0f0f0;display:flex;align-items:center;justify-content:center;color:#666;font-size:16px;">地图加载中...</div>';
+        }
+      };
+      
+      // 菜单点击事件处理
+      function handleMenuClick(index) {
+        if (map && markers[index]) {
+          // 地图跳转到对应位置
+          map.setCenter(markers[index].position);
+          map.setZoom(14);
+          // 先移除所有光圈
+          markers.forEach(function(m) {
+            map.remove(m.circle);
+          });
+          // 只显示当前景点的光圈
+          map.add(markers[index].circle);
+          // 显示信息窗口
+          markers[index].infoWindow.open(map, markers[index].position);
+        }
+      }
+    </script>*/
+
+    <!-- 顶部高德地图 -->
+    <div id="amap-container" style="width:100vw;height:300px;"></div>
+    <hr style="margin:0; border: none; border-top: 2px solid #ffd600; width: 100vw;">
+    <div style="display:flex;align-items:stretch;height:calc(100vh - 300px);margin:0;padding:0;">
+        <div class="spot-menu" style="width:220px;background:#fff;box-sizing:border-box;margin:0;padding:0;">
+            <div style="font-size:1.3em;font-weight:bold;margin-bottom:18px;color:#333;letter-spacing:2px;
+                background:#fff;border:2px solid #ffd600;border-radius:10px;padding:10px 0;text-align:center;width:100%;box-sizing:border-box;box-shadow:0 2px 8px rgba(0,0,0,0.06);margin:0;">
+                景点打卡
+            </div>
+            <ul style="background:#fff;border:2px solid #ffd600;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,0.06);padding:10px 0 10px 0;margin:0;width:100%;box-sizing:border-box;">
+                <li></li>
+                <li></li>
+                <li></li>
+                <li></li>
+            </ul>
+        </div>
+        <hr style="align-self:stretch;margin:0;padding:0;border:none;border-left:2px solid #ffd600;height:100%;">
+        <div class="spot-content-area">
+          <div class="tab-header">
+            <button class="tab-btn active" data-tab="log">日志</button>
+            <button class="tab-btn" data-tab="album">相册</button>
+            <button class="tab-btn" data-tab="message">留言板</button>
+            <div class="tab-underline"></div>
+          </div>
+          <div class="tab-content-wrapper">
+            <div class="tab-content log-content">这里是日志内容</div>
+            <div class="tab-content album-content" style="display:none;">
+              <div class="album-controls" style="margin-bottom:16px;">
+                <button class="album-mode-btn active" data-mode="collection">集合模式</button>
+                <button class="album-mode-btn" data-mode="slideshow">放映模式</button>
+              </div>
+              <div class="album-container">
+                <!-- 集合模式 -->
+                <div class="collection-mode">
+                  <div class="photo-grid" id="photoGrid"></div>
+                </div>
+                <!-- 放映模式 -->
+                <div class="slideshow-mode" style="display:none;">
+                  <div class="slideshow-container slideshow-flex">
+                    <button class="prev-btn slideshow-arrow">❮</button>
+                    <img class="slideshow-img" src="/images/zjj1.jpg" alt="放映">
+                    <button class="next-btn slideshow-arrow">❯</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="tab-content message-content" style="display:none;">
+              <div style='margin-bottom:12px;display:flex;gap:8px;align-items:center;'>
+                <span>欢迎留言!!!</span><span style='font-size:40px;'>&#9997;</span><span style='font-size:40px;'>&#9997;</span>
+              </div>
+              <input id="nickname-input" type="text" placeholder="昵称（必填）" style="width:120px;padding:4px 8px;border-radius:6px;border:1px solid #ffd600;font-size:1em;" maxlength="12">
+              <br>
+              <br>
+              <textarea style="width:100%;height:60px;resize:vertical;border-radius:8px;border:1px solid #ffd600;padding:8px;font-size:1em;box-sizing:border-box;" placeholder="想说些什么呢🤔"></textarea>
+              <br>
+              <span style='font-size:20px; transform: scaleX(-1); display: inline-block;'>&#128149;</span><span style='font-size:20px;'>&#128147;</span><button id="add-message-btn" style='background:#ffd600;color:#fff;border:none;border-radius:6px;padding:6px 18px;font-size:1em;cursor:pointer;'>添加</button><span style='font-size:20px;'>&#128147;</span><span style='font-size:20px;'>&#128149;</span>
+              <div id="message-list" style="margin-top:18px;"></div>
+            </div>
+          </div>
+        </div>
+    </div>
+    <!-- 放大图片弹窗 -->
+    <div id="imgModal" style="display:none;position:fixed;z-index:9999;left:0;top:0;width:100vw;height:100vh;background:rgba(0,0,0,0.7);align-items:center;justify-content:center;">
+      <img id="modalImg" src="" alt="大图" style="max-width:90vw;max-height:90vh;box-shadow:0 4px 32px #000;border-radius:12px;">
+    </div>
+    <script>
+        var menuLis = document.querySelectorAll('.spot-menu li');
+        var spotLogs = [
+          `<div>
+            
+            </div>`,
+          `<div></div>`,
+          `<div></div>`,
+          `<div></div>`
+        ];
+        // 相册图片数组（深圳景点图片）
+        /*var images = [
+          {src:'/images/szc1.jpg'},
+          {src:'/images/szc2.jpg'},
+          {src:'/images/szc3.jpg'},
+          {src:'/images/szc4.jpg'},
+          {src:'/images/szc5.jpg'},
+          {src:'/images/szc6.jpg'},
+          {src:'/images/szc7.jpg'},
+          {src:'/images/szc8.jpg'}
+        ];*/
+        // 菜单切换只切换日志
+        function updateSpotContent(idx) {
+          document.querySelector('.log-content').innerHTML = spotLogs[idx];
+        }
+        if(menuLis.length) {
+          menuLis.forEach(function(l){l.classList.remove('active');});
+          menuLis[0].classList.add('active');
+          updateSpotContent(0);
+        }
+        menuLis.forEach(function(li,idx){
+          li.onclick = function(){
+            menuLis.forEach(function(l){l.classList.remove('active');});
+            li.classList.add('active');
+            updateSpotContent(idx);
+            // 调用地图交互函数
+            handleMenuClick(idx);
+          };
+        });
+        // 相册渲染
+        function renderCollection() {
+          var html = images.map(function(img){
+            return '<div class="photo-item"><img src="'+img.src+'" alt=""></div>';
+          }).join('');
+          document.getElementById('photoGrid').innerHTML = html;
+        }
+        // 放映模式
+        var modeBtns = document.querySelectorAll('.album-mode-btn');
+        var collection = document.querySelector('.collection-mode');
+        var slideshow = document.querySelector('.slideshow-mode');
+        var slideImg = document.querySelector('.slideshow-img');
+        var prevBtn = document.querySelector('.prev-btn');
+        var nextBtn = document.querySelector('.next-btn');
+        var current = 0;
+        var playing = false;
+        var timer = null;
+        function showSlide(idx){
+          if(idx<0) idx=images.length-1;
+          if(idx>=images.length) idx=0;
+          current=idx;
+          slideImg.src=images[idx].src;
+        }
+        function play(){
+          playing=true;
+          timer=setInterval(function(){
+            showSlide(current+1);
+          },2000);
+        }
+        function pause(){
+          playing=false;
+          if(timer) clearInterval(timer);
+        }
+        modeBtns.forEach(function(btn){
+          btn.onclick=function(){
+            modeBtns.forEach(b=>b.classList.remove('active'));
+            btn.classList.add('active');
+            var albumContent = document.querySelector('.album-content');
+            if(btn.dataset.mode==='collection'){
+              collection.style.display='';
+              slideshow.style.display='none';
+              albumContent.style.overflowY = 'auto'; // 集合模式允许滚动
+              pause();
+            }else{
+              collection.style.display='none';
+              slideshow.style.display='';
+              albumContent.style.overflowY = 'hidden'; // 放映模式禁用滚动
+              showSlide(current);
+              play();
+            }
+          };
+        });
+        prevBtn.onclick=function(){showSlide(current-1);};
+        nextBtn.onclick=function(){showSlide(current+1);};
+        renderCollection();
+        showSlide(0);
+        // 留言板（城市级别共用）
+        var cityAbbr = 'szc';
+        function loadMessageList() {
+          var list = JSON.parse(localStorage.getItem('spot_message_list_' + cityAbbr) || '[]');
+          list = list.filter(function(msg){ return msg.nick && msg.nick !== '匿名'; });
+          var html = '';
+          if(list.length === 0) {
+            html = "<div style='color:#aaa;'>暂无留言</div>";
+          } else {
+            html = list.map(function(msg, idx){
+              return "<div style='margin-bottom:10px;padding:8px 12px;background:#fffbe6;border-radius:6px;border:1px solid #ffe082;word-break:break-all;'><span style='color:#2196f3;font-weight:bold;margin-right:8px;'>" + msg.nick + ":</span><span style='color:#333;'>" + msg.text + "</span><span style='float:right;color:#999;font-size:0.95em;'>" + (msg.date ? msg.date : '') + "</span></div>";
+            }).join('');
+          }
+          document.getElementById('message-list').innerHTML = html;
+        }
+        function addMessage() {
+          var textarea = document.querySelector('.message-content textarea');
+          var nickname = document.getElementById('nickname-input').value.trim();
+          var val = textarea.value.trim();
+          if(!nickname) {
+            alert('请填写昵称');
+            document.getElementById('nickname-input').focus();
+            return;
+          }
+          if(!val) {
+            alert('请输入留言内容');
+            return;
+          }
+          var list = JSON.parse(localStorage.getItem('spot_message_list_' + cityAbbr) || '[]');
+          var now = new Date();
+          var dateStr = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0') + ' ' + String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+          list.push({nick: nickname, text: val, date: dateStr});
+          localStorage.setItem('spot_message_list_' + cityAbbr, JSON.stringify(list));
+          textarea.value = '';
+          document.getElementById('nickname-input').value = '';
+          loadMessageList();
+        }
+        function loadMessageTab() {
+          loadMessageList();
+          document.querySelector('.message-content textarea').value = '';
+        }
+        Array.from(document.querySelectorAll('.tab-btn')).forEach(function(btn){
+          btn.onclick = function(){
+            document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+            btn.classList.add('active');
+            if(btn.dataset.tab==='log'){
+              document.querySelector('.log-content').style.display = '';
+              document.querySelector('.album-content').style.display = 'none';
+              document.querySelector('.message-content').style.display = 'none';
+            }else if(btn.dataset.tab==='album'){
+              document.querySelector('.log-content').style.display = 'none';
+              document.querySelector('.album-content').style.display = '';
+              document.querySelector('.message-content').style.display = 'none';
+            }else{
+              document.querySelector('.log-content').style.display = 'none';
+              document.querySelector('.album-content').style.display = 'none';
+              document.querySelector('.message-content').style.display = '';
+              loadMessageTab();
+            }
+          };
+        });
+        loadMessageList();
+        document.addEventListener('DOMContentLoaded', function() {
+          var btn = document.getElementById('add-message-btn');
+          if(btn) btn.onclick = addMessage;
+        });
+        // 放大图片弹窗功能
+        (function(){
+          var modal = document.getElementById('imgModal');
+          var modalImg = document.getElementById('modalImg');
+          // 事件委托，监听photoGrid下所有图片点击
+          document.getElementById('photoGrid').onclick = function(e){
+            if(e.target && e.target.tagName==='IMG'){
+              modalImg.src = e.target.src;
+              modal.style.display = 'flex';
+            }
+          };
+          // 点击遮罩关闭
+          modal.onclick = function(e){
+            if(e.target === modal) modal.style.display = 'none';
+          };
+        })();
+    </script>
+</body>
+</html>
+

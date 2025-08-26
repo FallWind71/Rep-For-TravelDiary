@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no, width=device-width">
+    <title>MyTravelDiary</title>
+    <!-- 添加 favicon -->
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            height: 100vh;
+            background: #f0f0f0; /* 两侧填充色，可自定义 */
+        }
+        .map-clip-wrapper {
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;      /* 裁剪超出部分 */
+            position: relative;
+            background: #f0f0f0;   /* 两侧填充色 */
+        }
+        #container {
+            width: 142.857vw;      /* 放大地图宽度（100/0.7=142.857） */
+            height: 100vh;
+            position: absolute;
+            left: -21.428vw;       /* 左移(142.857-100)/2=21.428vw，让中间部分居中 */
+            top: 0;
+        }
+        .marker-info {
+            background: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            box-shadow: 0 2px 4px rgba(25, 24, 24, 0.1);
+        }
+        .art-text {
+            position: absolute;
+            top: 30px;
+            left: 0;
+            width: 100vw;
+            height: 60px;
+            z-index: 1000;
+            pointer-events: none;
+            text-align: center;
+            font-size: clamp(2.8em, 3vw, 2.2em); /* 使用 clamp 进行响应式字体设置 */
+            font-family: 'STXingkai', 'FZShuTi', 'KaiTi', cursive, sans-serif;
+            font-weight: bold;
+            color: #ff9800;
+            letter-spacing: 0.6em;
+            text-shadow: 2px 2px 8px #fff, 0 0 8px #ff9800;
+            overflow: visible;
+        }
+        .art-text span {
+            display: inline-block;
+            opacity: 0;
+            position: relative;
+            right: -100px;
+            transition: all 0.8s cubic-bezier(.68,-0.55,.27,1.55);
+        }
+        .marker-wrap {
+            position: relative;
+            width: 26px;
+            height: 38px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            pointer-events: auto;
+        }
+        .marker-img {
+            width: 100%;
+            height: 100%;
+            transition: transform 0.2s;
+            z-index: 2;
+        }
+        .marker-glow {
+            position: absolute;
+            bottom: 2px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 18px;
+            height: 8px;
+            border-radius: 50%;
+            background: radial-gradient(ellipse at center, #ffeb3b 0%, rgba(255,235,59,0.5) 60%, rgba(255,235,59,0) 100%);
+            opacity: 0;
+            transition: opacity 0.2s;
+            z-index: 1;
+            pointer-events: none;
+        }
+        .marker-wrap.active .marker-glow {
+            opacity: 1;
+            box-shadow: 0 0 16px 8px #ffe066;
+        }
+        .marker-img-rotate-wrap {
+            width: 26px;
+            height: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        /* 修正圆形 logo 样式，border-radius 50% 即可 */
+        .corner-logo {
+            position: fixed;
+            left: 24px;
+            bottom: 24px;
+            width: 200px;
+            height: 200px;
+            border-radius: 60px; /* 建议为宽高的30%~50%，可自调 */
+            background: #fff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+        .corner-logo img {
+            width: 180px;
+            height: 180px;
+            border-radius: 50%;
+            object-fit: cover;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <audio id="bgm" src="music/homepage.mp3" autoplay loop style="display:none"></audio>
+    <script>
+      document.addEventListener('click', function playMusicOnce() {
+        var audio = document.getElementById('bgm');
+        if (audio.paused) audio.play();
+        document.removeEventListener('click', playMusicOnce);
+      });
+    </script>
+    <div class="map-clip-wrapper">
+        <div id="container"></div>
+        <div class="art-text" id="artText"></div>
+        <div id="city-content" style="position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:3000;background:#fff;display:none;overflow:auto"></div>
+        <div class="corner-logo"><img src="images/logo.jpg" alt="logo" width="200px" height="200px"></div>
+    </div>
+    <script src="//webapi.amap.com/maps?v=2.0&key=9fc9fa2cc13054def2de535cddcce730"></script>
+    <script>
+        // 使用现代 ES6 语法
+        // 初始化地图对象，设置中心点、图层、缩放、视角等参数
+       const map = new AMap.Map('container', {
+            center: [111.3, 16.67], // 北京
+            layers: [
+                new AMap.TileLayer.Satellite(),
+                new AMap.TileLayer.RoadNet()
+            ],
+            zoom: 5.25,           // 缩放级别
+            viewMode: '3D',      // 3D 模式
+            pitch: 55,           // 俯仰角
+            rotation: 30,        // 逆时针旋转20度
+            zoomEnable: false,   // 禁止缩放
+            dragEnable: false    // 禁止拖动
+        });
+
+        // 定义所有标记点的名称和经纬度
+        var locations = [
+            { name: '南京', abbr: 'nj', position: [118.767413, 32.041544], date: '2025-06-29' },
+            { name: '苏州', abbr: 'sz', position: [120.619585, 31.299379], date: '2025-07-01' },
+            { name: '九江', abbr: 'jj', position: [115.992761, 29.710815], date: '2025-05-03' },
+            { name: '南昌', abbr: 'nc', position: [115.892151, 28.676493], date: '2025-05-01' },
+            { name: '新加坡', abbr: 'xjp', position: [103.851959, 1.290270], date: '2024-07-31' },
+            { name: '马来西亚', abbr: 'mlxy', position: [101.975766, 4.210484],date: '2024-07-29' },
+            { name: '张家界', abbr: 'zjj', position: [110.479141, 29.126704], date: '2024-10-03' },
+            { name: '广州', abbr: 'gz', position: [113.264385, 23.129112], date: '2024-06-10' },
+            { name: '深圳', abbr: 'szc', position: [114.057868, 22.543099], date: '2024-08-02' }
+        ];
+
+        // 初始化信息窗口，去掉右上角关闭按钮
+        const infoWindow = new AMap.InfoWindow({
+            offset: new AMap.Pixel(0, -30), // 信息窗体向下偏移
+            isCustom: true                  // 使用自定义信息窗体，无关闭按钮
+        });
+
+        // 定义缩放后的整数尺寸（32*0.8=25.6，取整为26）
+        const iconSize = [26, 26];
+
+        // 遍历所有地点，创建自定义内容标记
+        locations.forEach((location) => {
+            // 创建自定义内容
+            const markerDiv = document.createElement('div');
+            markerDiv.className = 'marker-wrap';
+            markerDiv.innerHTML = `
+                <div class="marker-img-rotate-wrap">
+                    <img class="marker-img" src="//webapi.amap.com/theme/v1.3/markers/n/mark_b.png" />
+                </div>
+                <div class="marker-glow"></div>
+            `;
+
+            const marker = new AMap.Marker({
+                position: location.position,
+                map,
+                content: markerDiv,
+                anchor: 'bottom-center',
+                offset: new AMap.Pixel(0, 0)
+            });
+            location.marker = marker;
+
+            // 悬停效果
+            markerDiv.addEventListener('mouseenter', function() {
+                var img = markerDiv.querySelector('.marker-img');
+                img.style.transform = 'scale(1.25)';
+                img.src = "//webapi.amap.com/theme/v1.3/markers/n/mark_r.png";
+                markerDiv.classList.add('active');
+                infoWindow.setContent('<div class="marker-info">' + location.name + (location.date ? '<br><span style="font-size:0.95em;color:#888;">旅行日期：' + location.date + '</span>' : '') + '</div>');
+                infoWindow.open(map, location.position);
+            });
+            markerDiv.addEventListener('mouseleave', function() {
+                var img = markerDiv.querySelector('.marker-img');
+                img.style.transform = 'scale(1)';
+                img.src = "//webapi.amap.com/theme/v1.3/markers/n/mark_b.png";
+                markerDiv.classList.remove('active');
+                infoWindow.close();
+            });
+            // 点击标记加载对应城市html
+            markerDiv.addEventListener('click', function(e) {
+                e.stopPropagation();
+                var abbr = location.abbr;
+                window.location.href = abbr + '.html';
+            });
+        });
+
+        // 艺术字动画效果（每个字随机颜色）
+        var artSentence = '谨以此网站记录我十八岁后的那些诗和远方......';
+        var artTextDiv = document.getElementById('artText');
+        artTextDiv.innerHTML = '';
+        function getRandomColor() {
+            return 'hsl(' + Math.floor(Math.random()*360) + ',80%,55%)';
+        }
+        for (let i = 0; i < artSentence.length; i++) {
+            let span = document.createElement('span');
+            span.textContent = artSentence[i];
+            span.style.color = getRandomColor(); // 随机色
+            artTextDiv.appendChild(span);
+        }
+        let spans = artTextDiv.querySelectorAll('span');
+        spans.forEach((span, idx) => {
+            setTimeout(() => {
+                span.style.opacity = 1;
+                span.style.right = '0';
+            }, idx * 180);
+        });
+
+        // 添加错误处理
+        AMap.plugin(['AMap.Map'], function() {
+            if (!map) {
+                console.error('地图初始化失败');
+            }
+        });
+    </script>
+</body>
+</html>
