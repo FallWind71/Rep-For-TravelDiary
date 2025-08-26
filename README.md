@@ -4,7 +4,7 @@
 
 ```
 TD/
-├── MyTravelDiaryPages/          # 主要页面目录
+├── MyTravelDiary/          # 主要页面目录
 │   ├── homepage.html            # 主页（地图界面）
 │   ├── zjj.html                # 张家界页面
 │   ├── xjp.html                # 新加坡页面
@@ -154,7 +154,7 @@ async function addMessage() {
 
 #### 步骤1：安装依赖
 ```bash
-cd MyTravelDiaryPages
+cd MyTravelDiary
 npm install
 ```
 
