@@ -1,4 +1,140 @@
 # MyTravelDiary 旅行日记项目
+##操作说明
+
+### cd
+change directory.
+
+cd命令用来进入某个目录。例如：
+```bash
+
+root@hcss-ecs-50c7:~# cd SJ/
+root@hcss-ecs-50c7:~/SJ# 
+
+```
+#### 路径和补全
+'.'表示当前目录
+’..'表示上一个目录
+‘～’表示home目录
+直接使用cd会返回home目录
+按tab键可以进行补全。按两下tab可以显示候选名字。
+
+### ls
+list
+列出当前目录的所有文件。
+list -l列出更加详细的信息。
+```bash
+root@hcss-ecs-50c7:~/SJ# ls
+sleepy
+root@hcss-ecs-50c7:~/SJ# ls -l
+total 4
+drwxr-xr-x 9 root root 4096 Jul 20 00:20 sleepy
+```
+
+### mkdir
+make directory
+创建目录。
+```bash
+root@hcss-ecs-50c7:~/SJ# ls -l
+total 4
+drwxr-xr-x 9 root root 4096 Jul 20 00:20 sleepy
+root@hcss-ecs-50c7:~/SJ# mkdir test
+root@hcss-ecs-50c7:~/SJ# ls -l
+total 8
+drwxr-xr-x 9 root root 4096 Jul 20 00:20 sleepy
+drwxr-xr-x 2 root root 4096 Aug 26 19:07 test
+```
+### tree
+树形结构图
+列出当前目录的树形结构图
+```bash
+root@hcss-ecs-50c7:~/SJ# tree
+.
+├── sleepy
+│   ├── data.json
+│   ├── data.py
+│   ├── _example
+│   │   └── cmd_console.py
+│   ├── example.jsonc
+│   ├── img
+│   │   ├── Cat.jpg
+│   │   └── CQSS.jpg
+│   ├── img.py
+│   ├── install_lib.bat
+│   ├── install_lib.sh
+│   ├── jsonc_parser
+│   │   ├── errors.py
+│   │   ├── __init__.py
+│   │   ├── jsonc_parser
+│   │   │   └── README.md
+│   │   ├── LICENSE.txt
+│   │   ├── MANIFEST.in
+│   │   ├── parser.py
+│   │   ├── __pycache__
+│   │   │   ├── errors.cpython-310.pyc
+│   │   │   ├── __init__.cpython-310.pyc
+│   │   │   └── parser.cpython-310.pyc
+│   │   ├── README.md
+│   │   └── setup.py
+│   ├── __pycache__
+│   │   ├── data.cpython-310.pyc
+│   │   └── utils.cpython-310.pyc
+│   ├── README.md
+│   ├── requirements.txt
+│   ├── server.py
+│   ├── start.py
+│   ├── static
+│   │   └── favicon.ico
+│   ├── templates
+│   │   ├── index.html
+│   │   └── style.css
+│   ├── utils.py
+│   └── 前台应用状态.macro
+└── test
+
+11 directories, 31 files
+root@hcss-ecs-50c7:~/SJ# 
+```
+
+### rm
+remove
+删除命令。删除文件夹需要加上‘-r'表示递归删除
+```bash
+root@hcss-ecs-50c7:~/SJ/test# tree
+.
+├── test-1
+└── test-folder
+    └── 666
+
+2 directories, 2 files
+root@hcss-ecs-50c7:~/SJ/test# rm test-1
+root@hcss-ecs-50c7:~/SJ/test# tree
+.
+└── test-folder
+    └── 666
+
+2 directories, 1 file
+root@hcss-ecs-50c7:~/SJ/test# rm test-folder/
+rm: cannot remove 'test-folder/': Is a directory
+root@hcss-ecs-50c7:~/SJ/test# rm test-folder/ -r
+root@hcss-ecs-50c7:~/SJ/test# tree
+.
+
+0 directories, 0 files
+```
+### vim
+vim是命令行下常见的文本编辑器，用法是”vim xxx"
+```bash
+vim test_file.md
+```
+#### 简略使用方法
+```bash
+vimtutor
+```
+该命令可以调出vim的使用教程。
+
+vim文件后，按“i"进入编辑模式，按”Esc“退出编辑模式（进入正常模式）
+正常模式下，输入”：“进入命令模式，输入”w“并回车保存文件，输入”q“并回车来退出，输入”wq“并回车从而保存并退出
+详细教程参考vimtutor
 
 ## 📁 项目结构
 
