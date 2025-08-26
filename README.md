@@ -13,15 +13,22 @@ root@hcss-ecs-50c7:~/SJ#
 ```
 #### 路径和补全
 '.'表示当前目录
+
 ’..'表示上一个目录
+
 ‘～’表示home目录
+
 直接使用cd会返回home目录
+
 按tab键可以进行补全。按两下tab可以显示候选名字。
 
 ### ls
 list
+
 列出当前目录的所有文件。
+
 list -l列出更加详细的信息。
+
 ```bash
 root@hcss-ecs-50c7:~/SJ# ls
 sleepy
@@ -31,8 +38,11 @@ drwxr-xr-x 9 root root 4096 Jul 20 00:20 sleepy
 ```
 
 ### mkdir
+
 make directory
+
 创建目录。
+
 ```bash
 root@hcss-ecs-50c7:~/SJ# ls -l
 total 4
@@ -43,9 +53,13 @@ total 8
 drwxr-xr-x 9 root root 4096 Jul 20 00:20 sleepy
 drwxr-xr-x 2 root root 4096 Aug 26 19:07 test
 ```
+
 ### tree
+
 树形结构图
+
 列出当前目录的树形结构图
+
 ```bash
 root@hcss-ecs-50c7:~/SJ# tree
 .
@@ -96,8 +110,11 @@ root@hcss-ecs-50c7:~/SJ#
 ```
 
 ### rm
+
 remove
+
 删除命令。删除文件夹需要加上‘-r'表示递归删除
+
 ```bash
 root@hcss-ecs-50c7:~/SJ/test# tree
 .
@@ -121,20 +138,67 @@ root@hcss-ecs-50c7:~/SJ/test# tree
 
 0 directories, 0 files
 ```
+
 ### vim
+
 vim是命令行下常见的文本编辑器，用法是”vim xxx"
+
 ```bash
 vim test_file.md
 ```
+
 #### 简略使用方法
+
 ```bash
 vimtutor
 ```
 该命令可以调出vim的使用教程。
 
 vim文件后，按“i"进入编辑模式，按”Esc“退出编辑模式（进入正常模式）
+
 正常模式下，输入”：“进入命令模式，输入”w“并回车保存文件，输入”q“并回车来退出，输入”wq“并回车从而保存并退出
+
 详细教程参考vimtutor
+
+### tmux
+
+tmux是便于断开ssh连接后保持运行，同时便于监测输出的命令行应用。有以下几个命令
+
+#### tmux ls
+
+列出正在运行的tmux进程
+
+#### tmux
+
+创建一个tmux进程
+
+#### tmux attach -t xxx
+
+进入tmux的 xxx 进程
+
+#### 操作方式
+
+ctrl+b 进入操作模式。此时：
+
+##### 按下”%“
+
+分屏，多加一个命令行窗口
+
+#### 按下”↑↓←→“任一按键
+
+切换命令行窗口
+
+#### ”d“
+
+退出tmux
+
+#### 更多教程上网寻找即可
+
+### 运行流程
+
+进入tmux,在FinalMyTravelDiary文件夹下运行./mytraveldiary
+
+在~/FinalTravelDiary/MyTravelDiary下运行node sever.js
 
 ## 📁 项目结构
 
