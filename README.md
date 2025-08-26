@@ -1,5 +1,5 @@
 # MyTravelDiary 旅行日记项目
-##操作说明
+## 操作说明
 
 ### cd
 change directory.
