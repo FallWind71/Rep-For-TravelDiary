@@ -360,7 +360,7 @@ npm install
 
 #### 步骤2：启动服务器
 ```bash
-npm start
+./mytraveldiary
 ```
 
 服务器将在 `http://localhost:3000` 启动
